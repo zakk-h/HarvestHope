@@ -1,0 +1,121 @@
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(ggplot2)
+
+inventory <- read_csv("TechInventory.csv")
+
+# Remove rows where Quantity is NA (those are divider rows)
+inventory <- inventory %>%
+  filter(!is.na(Quantity))
+
+inventory_summary <- inventory %>%
+  group_by(Section) %>%
+  summarise(Total_Quantity = sum(Quantity, na.rm = TRUE))
+
+ggplot(inventory_summary, aes(x = reorder(Section, -Total_Quantity), y = Total_Quantity)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Total Quantity of Items by Section", x = "Section", y = "Total Quantity") +
+  theme_minimal()
+
+top_sections <- inventory_summary %>%
+  filter(Total_Quantity > 10)
+
+ggplot(top_sections, aes(x = reorder(Section, -Total_Quantity), y = Total_Quantity)) +
+  geom_bar(stat = "identity", fill = "darkorange") +
+  coord_flip() +
+  labs(title = "Top Sections by Quantity", x = "Section", y = "Total Quantity") +
+  theme_minimal()
+
+laptops <- inventory %>%
+  filter(Section == "Laptops")
+
+ggplot(laptops, aes(x = reorder(Item, -Quantity), y = Quantity)) +
+  geom_bar(stat = "identity", fill = "forestgreen") +
+  coord_flip() +
+  labs(title = "Laptop Inventory Details", x = "Item", y = "Quantity") +
+  theme_minimal()
+
+ggplot(inventory_summary, aes(x = "", y = Total_Quantity, fill = Section)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y") +
+  labs(title = "Inventory Breakdown by Section") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank())
+
+ggsave("inventory_by_section.png")
+ggsave("top_sections.png")
+ggsave("laptop_inventory.png")
+ggsave("inventory_pie_chart.png")
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+# Combine similar sections for visibility
+inventory_combined <- inventory %>%
+  mutate(Combined_Section = case_when(
+    Section %in% c("Laptops", "Laptop Chargers", "Laptop Batteries", "Laptop Accessories") ~ "Laptops & Accessories",
+    Section %in% c("Tablets", "Tablet Chargers", "Tablet Cases and Accessories") ~ "Tablets & Accessories",
+    Section %in% c("Phones", "Phone Cases") ~ "Phones & Accessories",
+    Section %in% c("Networking Equipment", "Access Points") ~ "Networking Equipment",
+    Section %in% c("Storage Devices") ~ "Storage Devices",
+    Section %in% c("Printers and Scanners") ~ "Printers & Scanners",
+    Section %in% c("Audio and Video Equipment") ~ "Audio & Video Equipment",
+    Section %in% c("Cables and Adapters") ~ "Cables & Adapters",
+    Section %in% c("Computer Peripherals", "Monitors", "TVs") ~ "Peripherals & Displays",
+    Section %in% c("Miscellaneous Tech", "Other Accessories") ~ "Miscellaneous & Accessories",
+    TRUE ~ Section
+  ))
+
+inventory_summary_combined <- inventory_combined %>%
+  group_by(Combined_Section) %>%
+  summarise(Total_Quantity = sum(Quantity, na.rm = TRUE))
+
+colors <- c("Laptops & Accessories" = "deepskyblue",
+            "Tablets & Accessories" = "mediumpurple",
+            "Phones & Accessories" = "plum",
+            "Networking Equipment" = "forestgreen",
+            "Storage Devices" = "orange",
+            "Printers & Scanners" = "orchid",
+            "Audio & Video Equipment" = "gold",
+            "Cables & Adapters" = "lightcoral",
+            "Peripherals & Displays" = "blueviolet",
+            "Miscellaneous & Accessories" = "darkorchid")
+
+ggplot(inventory_summary_combined, aes(x = reorder(Combined_Section, -Total_Quantity), y = Total_Quantity)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  coord_flip() +
+  labs(title = "Total Quantity of Items by Combined Section", x = "Combined Section", y = "Total Quantity") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 20, face = "bold", color = "darkslateblue"),
+    axis.title = element_text(size = 15, face = "bold", color = "darkslateblue"),
+    axis.text = element_text(size = 12, color = "darkslategray")
+  ) +
+  scale_fill_manual(values = colors)
+
+ggsave("combined_inventory_by_section.png")
+
+ggplot(inventory_summary_combined, aes(x = "", y = Total_Quantity, fill = Combined_Section)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y") +
+  labs(title = "Inventory Breakdown by Combined Section") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 20, face = "bold", color = "darkslateblue"),
+    axis.text.x = element_blank(),
+    axis.title = element_blank(),
+    legend.title = element_text(size = 15, face = "bold", color = "darkslateblue"),
+    legend.text = element_text(size = 12, color = "darkslategray")
+  ) +
+  scale_fill_manual(values = colors)
+
+ggsave("combined_inventory_pie_chart.png")
+
+```

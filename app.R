@@ -59,17 +59,19 @@ server <- function(input, output, session) {
   # Securely stored hashed password (pre-hashed using sodium::password_store)
   hashed_password <- "$7$C6..../....LbSHcf7gGddIJ8ePwquEtXywH3rAGBhs3O9I/NWz60/$SFFJkNa1XLPXFYqEXqOADzRLb9huyw/KlRO5Fc7KjY8"
   
+  # Only user selections
   filtered_data <- reactive({
     inventory_combined %>%
       filter(Combined_Section %in% input$sections)
   })
   
+  # Only run the first initial time, inventory_combined doesn't change
   inventory_data <- reactiveVal(inventory_combined)
   
   # Admin status
   admin_status <- reactiveVal(FALSE)
   
-  # Authenticate admin by checking if the hashes turn out the same
+  # Authenticate admin by comparing created hash
   observeEvent(input$admin_login, {
     if (sodium::password_verify(hashed_password, input$admin_password)) {
       admin_status(TRUE)
@@ -106,7 +108,7 @@ server <- function(input, output, session) {
       )
     )
     
-    # FIX
+    # FIX: Update inventory with new item, merging by Item, Section, and Comments
     updated_inventory <- bind_rows(inventory_data(), new_item) %>%
       group_by(Item, Comments, Section, Combined_Section) %>%
       summarise(Quantity = sum(Quantity, na.rm = TRUE), .groups = 'drop')
@@ -117,7 +119,7 @@ server <- function(input, output, session) {
     showNotification("Item added to the inventory.", type = "message")
   })
   
-  # Update/render bar plot
+  # Render bar plot
   output$barPlot <- renderPlotly({
     data <- inventory_data() %>%
       group_by(Combined_Section) %>%
@@ -129,34 +131,68 @@ server <- function(input, output, session) {
              yaxis = list(title = 'Total Quantity'))
   })
   
-  # Render data table with removal buttons (IMPROVE)
+  # Render data table with plus and minus buttons
   output$dataTable <- renderDT({
     datatable(filtered_data() %>%
-                mutate(Remove = sprintf('<button id="remove_%s" class="btn btn-danger">X</button>', row_number())), escape = FALSE, options = list(pageLength = 10, autoWidth = TRUE))
+                select(-Combined_Section) %>%
+                mutate(Quantity = sprintf('%s <button id="minus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">+</button>', Quantity, row_number(), row_number())), 
+              escape = FALSE, 
+              options = list(pageLength = 10, autoWidth = TRUE, columnDefs = list(list(width = '200px', targets = 4))))
   }, server = FALSE)
   
   # Shinyjs to add JavaScript for handling button clicks
   observe({
     shinyjs::runjs("
-      $(document).on('click', 'button[id^=remove_]', function() {
+      $(document).on('click', 'button[id^=plus_]', function() {
         var id = $(this).attr('id');
-        Shiny.setInputValue('remove_button', id, {priority: 'event'});
+        Shiny.setInputValue('plus_button', id, {priority: 'event'});
+      });
+      
+      $(document).on('click', 'button[id^=minus_]', function() {
+        var id = $(this).attr('id');
+        Shiny.setInputValue('minus_button', id, {priority: 'event'});
       });
     ")
   })
   
-  # Handle remove button click
-  observeEvent(input$remove_button, {
+  # Handle plus button click
+  observeEvent(input$plus_button, {
     if (!admin_status()) {
-      showNotification("Error: You do not have admin rights to remove items.", type = "error")
+      showNotification("Error: You do not have admin rights to modify items.", type = "error")
       return()
     }    
-    remove_index <- as.numeric(sub("remove_", "", input$remove_button))
-    item_to_remove <- inventory_data()[remove_index, ]
+    plus_index <- as.numeric(sub("plus_", "", input$plus_button))
+    updated_inventory <- inventory_data()
+    updated_inventory$Quantity[plus_index] <- updated_inventory$Quantity[plus_index] + 1
+    inventory_data(updated_inventory)
     
-    # (IMPROVE, ADD ALTERNATIVE TO REMOVING WHOLE ROW)
-    updated_inventory <- inventory_data() %>%
-      filter(!(Item == item_to_remove$Item & Section == item_to_remove$Section & Comments == item_to_remove$Comments))
+    write_csv(updated_inventory, "TechInventory.csv")
+    
+    # Refresh the data table
+    output$dataTable <- renderDT({
+      datatable(inventory_data() %>%
+                  filter(Combined_Section %in% input$sections) %>%
+                  select(-Combined_Section) %>%
+                  mutate(Quantity = sprintf('%s <button id="minus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">+</button>', Quantity, row_number(), row_number())), 
+                escape = FALSE, 
+                options = list(pageLength = 10, autoWidth = TRUE, columnDefs = list(list(width = '200px', targets = 4))))
+    }, server = FALSE)
+  })
+  
+  # Handle minus button click
+  observeEvent(input$minus_button, {
+    if (!admin_status()) {
+      showNotification("Error: You do not have admin rights to modify items.", type = "error")
+      return()
+    }    
+    minus_index <- as.numeric(sub("minus_", "", input$minus_button))
+    updated_inventory <- inventory_data()
+    updated_inventory$Quantity[minus_index] <- updated_inventory$Quantity[minus_index] - 1
+    
+    # Remove item if quantity reaches 0
+    if (updated_inventory$Quantity[minus_index] <= 0) {
+      updated_inventory <- updated_inventory[-minus_index, ]
+    }
     
     inventory_data(updated_inventory)
     
@@ -166,10 +202,11 @@ server <- function(input, output, session) {
     output$dataTable <- renderDT({
       datatable(inventory_data() %>%
                   filter(Combined_Section %in% input$sections) %>%
-                  mutate(Remove = sprintf('<button id="remove_%s" class="btn btn-danger">X</button>', row_number())), escape = FALSE, options = list(pageLength = 10, autoWidth = TRUE))
+                  select(-Combined_Section) %>%
+                  mutate(Quantity = sprintf('%s <button id="minus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">+</button>', Quantity, row_number(), row_number())), 
+                escape = FALSE, 
+                options = list(pageLength = 10, autoWidth = TRUE, columnDefs = list(list(width = '200px', targets = 4))))
     }, server = FALSE)
-    
-    showNotification("Item removed from the inventory.", type = "message")
   })
   
   output$admin_status <- reactive({

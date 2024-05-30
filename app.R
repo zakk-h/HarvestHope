@@ -116,6 +116,15 @@ server <- function(input, output, session) {
     
     write_csv(updated_inventory, "TechInventory.csv")
     
+    output$dataTable <- renderDT({
+      datatable(inventory_data() %>%
+                  filter(Combined_Section %in% input$sections) %>%
+                  select(-Combined_Section) %>%
+                  mutate(Quantity = sprintf('%s <button id="minus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">+</button>', Quantity, row_number(), row_number())), 
+                escape = FALSE, 
+                options = list(pageLength = 10, autoWidth = TRUE, columnDefs = list(list(width = '200px', targets = 4))))
+    }, server = FALSE)
+    
     showNotification("Item added to the inventory.", type = "message")
   })
   

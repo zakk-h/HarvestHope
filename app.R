@@ -63,7 +63,7 @@ server <- function(input, output, session) {
   # Only run the first initial time, inventory_combined doesn't change
   inventory_data <- reactiveVal(inventory_combined)
   
-  # Admin status
+  # Default Admin status
   admin_status <- reactiveVal(FALSE)
   
   # Authenticate admin by comparing created hash
@@ -120,27 +120,6 @@ server <- function(input, output, session) {
     
     write_csv(updated_inventory, "TechInventory.csv")
     
-    output$dataTable <- renderDT({
-      datatable(
-        filtered_data() %>%
-          select(-Combined_Section) %>%
-          mutate(Quantity = sprintf(
-            '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
-            Quantity, row_number(), row_number()
-          )),
-        escape = FALSE,
-        options = list(
-          pageLength = 10,
-          stateSave = TRUE,
-          autoWidth = FALSE,
-          columnDefs = list(
-            list(width = '150px', targets = 4),  # 5th column, adjusting + - column
-            list(className = 'dt-center', targets = "_all")
-          )
-        )
-      )
-    }, server = FALSE)
-    
     
     showNotification("Item added to the inventory.", type = "message")
   })
@@ -170,6 +149,7 @@ server <- function(input, output, session) {
       options = list(
         pageLength = 10,
         autoWidth = FALSE,  
+        stateSave = TRUE,
         columnDefs = list(
           list(width = '150px', targets = 4), 
           list(className = 'dt-center', targets = "_all")
@@ -206,27 +186,6 @@ server <- function(input, output, session) {
     
     write_csv(updated_inventory, "TechInventory.csv")
     
-    # Refresh the data table
-    output$dataTable <- renderDT({
-      datatable(
-        filtered_data() %>%
-          select(-Combined_Section) %>%
-          mutate(Quantity = sprintf(
-            '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
-            Quantity, row_number(), row_number()
-          )),
-        escape = FALSE,
-        options = list(
-          pageLength = 10,
-          stateSave = TRUE,
-          autoWidth = FALSE,  
-          columnDefs = list(
-            list(width = '150px', targets = 4), 
-            list(className = 'dt-center', targets = "_all")
-          )
-        )
-      )
-    }, server = FALSE)
   })
   
   # Handle minus button click
@@ -248,27 +207,6 @@ server <- function(input, output, session) {
     
     write_csv(updated_inventory, "TechInventory.csv")
     
-    # Refresh the data table
-    output$dataTable <- renderDT({
-      datatable(
-        filtered_data() %>%
-          select(-Combined_Section) %>%
-          mutate(Quantity = sprintf(
-            '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
-            Quantity, row_number(), row_number()
-          )),
-        escape = FALSE,
-        options = list(
-          pageLength = 10,
-          stateSave = TRUE,
-          autoWidth = FALSE, 
-          columnDefs = list(
-            list(width = '150px', targets = 4),  # 5th column
-            list(className = 'dt-center', targets = "_all")
-          )
-        )
-      )
-    }, server = FALSE)
   })
   
   output$admin_status <- reactive({

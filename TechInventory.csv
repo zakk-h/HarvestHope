@@ -1,140 +1,120 @@
-Item,Quantity,Comments,Section
-Laptops,,,Laptops
-Dell Latitude 5540,2,,Laptops
-Dell Latitude 3420 with charger,2,,Laptops
-Lenovo 100e Chromebook Gen3 4GB RAM 32GB EMMC,10,Includes 65W charger,Laptops
-Lenovo 100e Chromebook,1,"Not working, Includes 65W charger",Laptops
-Lenovo AMD4 Chromebook ,1,Keyboard not working,Laptops
-Lenovo AMD4 Chromebook,1,,Laptops
-Dell Laptop i3 Latitude 3520 with charger,1,,Laptops
-Dell Laptop i3 Latitude 3520 (low memory),1,No charger,Laptops
-Laptop Chargers,,,Laptop Chargers
-Lenovo 65W Laptop Charger,2,,Laptop Chargers
-Dell Notebook Power Bank Plus,1,Includes cables,Laptop Chargers
-Dell 45W DC Adapter,1,,Laptop Chargers
-Laptop Batteries,,,Laptop Batteries
-Generic Laptop Batteries,2,,Laptop Batteries
-Laptop Accessories,,,Laptop Accessories
-Kensington Adjustable Laptop Riser and Cooling Stand,2,,Laptop Accessories
-Dell USB-C Docking Station,1,Includes cables,Laptop Accessories
-Dell USB-C Docking Station,2,Includes cables and power cables,Laptop Accessories
-Tablets,,,Tablets
-Galaxy Tabs in orange case,4,,Tablets
-Galaxy Tabs in black case,3,,Tablets
-Galaxy Tabs ,2,No case,Tablets
-Dell Tablet running Windows 8 Pro Intel,3,,Tablets
-Windows Surface with attachable keyboard,1,Attaches magnetically,Tablets
-AT&T Cellular Galaxy Tab A,1,,Tablets
-Old iPad in leather case,1,,Tablets
-Tablet Chargers,,,Tablet Chargers
-Galaxy Tab Chargers with Bricks,3,,Tablet Chargers
-Tablet Cases and Accessories,,,Tablet Cases and Accessories
-Black Galaxy Tab Cases,14,Not on tablets,Tablet Cases and Accessories
-Bluetooth Keyboard Case for Tab,1,,Tablet Cases and Accessories
-Tempered Glass Screen Protector Packs,5,,Tablet Cases and Accessories
-Phones,,,Phones
-iPhone XR,2,,Phones
-iPhone 11,1,,Phones
-iPhone 6S,1,,Phones
-iPhone 5S,1,Unopened,Phones
-S20 FE 5G,2,,Phones
-Phone Cases,,,Phone Cases
-S21 Phone Case,5,,Phone Cases
-S21+ Phone Case,1,,Phone Cases
-Networking Equipment,,,Networking Equipment
-Juniper Networks SRX300 Gateway Router,1,Includes Asian power devices adapter,Networking Equipment
-Linksys Router with 4 Port Switch,1,,Networking Equipment
-Netgear 8 Port Gigabit Ethernet Switch,1,,Networking Equipment
-Zyxel Smart Managed Switch GS1900,1,,Networking Equipment
-Netgear ProSafe 16 Port Ethernet Switch,1,,Networking Equipment
-D-Link 5 Port Gigabit Ethernet Switch,1,,Networking Equipment
-Access Points,,,Access Points
-Linksys 2.4 GHz Wireless Access Point,1,,Access Points
-E400 CNPilot Gigabit Access Point,7,,Access Points
-CNPilot E510 Access Point,2,,Access Points
-UniFi Access Point AC Pro,1,,Access Points
-Storage Devices,,,Storage Devices
-Seagate 1TB HDD Baracuda,3,,Storage Devices
-Seagate 2TB 7200RPM SATA HDD,3,,Storage Devices
-Bytec Res Core Mobile External Hard Drive,1,,Storage Devices
-"Kingwin 3.5"" Hard Drive",1,,Storage Devices
-SmartDrive Mobile Drive HDD,1,,Storage Devices
-Printers and Scanners,,,Printers and Scanners
-Brother Color Printer HL L8500CDN,1,,Printers and Scanners
-Panini Vision X Check Scanner,1,,Printers and Scanners
-ScanSnap Scanner,1,,Printers and Scanners
-Dymo Label Printer 450,1,"With Dymo software, AC adapter, USB cable",Printers and Scanners
-Brother P-Touch Label Maker,1,,Printers and Scanners
-DYMO Embossing Label Maker,1,,Printers and Scanners
-Audio and Video Equipment,,,Audio and Video Equipment
-Olympus 8MP Camera with AV Cable,1,,Audio and Video Equipment
-Casio DC1 Camera 3x Zoom,1,,Audio and Video Equipment
-Panasonic TV with Power Cable,1,,Audio and Video Equipment
-Old HP TVs Bulky with Power Cables,2,,Audio and Video Equipment
-Muzak Digital Music Power Amplifier,1,,Audio and Video Equipment
-Miscellaneous Tech,,,Miscellaneous Tech
-Supermicro Bundle of Jumper Wires,1,,Miscellaneous Tech
-Audiocodes HTTPS Fax ATA,1,,Miscellaneous Tech
-Hipro 50W AC Adapter,1,,Miscellaneous Tech
-"Symbol Charge Cradle, DC Charger",3,,Miscellaneous Tech
-Symbol Handheld Lithium Batteries,8,,Miscellaneous Tech
-Power Supplies (generic),4,,Miscellaneous Tech
-Thermal Transfer Ribbon Rolls,8,,Miscellaneous Tech
-Cables and Adapters,,,Cables and Adapters
-Ethernet Cables,6,,Cables and Adapters
-USB A to USB A,2,,Cables and Adapters
-USB A to USB B,7,,Cables and Adapters
-USB 2.0 Slim Portable Optical Drive with USB Cable,1,,Cables and Adapters
-Apple 30-pin to USB-A,1,,Cables and Adapters
-USB to HDMI Cable,1,,Cables and Adapters
-Lightning Cable,35,,Cables and Adapters
-100W USB-C to USB-C cable,2,,Cables and Adapters
-USB-C to USB-C cable,9,,Cables and Adapters
-DisplayPort to HDMI Adapter,2,,Cables and Adapters
-DVI to HDMI Adapter,4,,Cables and Adapters
-VGA Adapter,4,,Cables and Adapters
-VGA Cable,3,,Cables and Adapters
-Ethernet Cable RJ45 Connector,1,,Cables and Adapters
-Extension Cords (short),7,,Cables and Adapters
-6ft USB Extension Cable,1,,Cables and Adapters
-USB A Splitter (1 to 3),1,,Cables and Adapters
-Jabra USB Hub,1,,Cables and Adapters
-VisionTek USB Hub (no cable),1,,Cables and Adapters
-USB Gigabit LAN Cable,1,,Cables and Adapters
-Mouse and Keyboard Extension Cable (6-pin Belkin),1,,Cables and Adapters
-Audio Cable 3.5mm,3,,Cables and Adapters
-Benfei DisplayPort to HDMI Adapter,2,,Cables and Adapters
-USB A to USB A,1,,Cables and Adapters
-Ethernet Cable,1,,Cables and Adapters
-Power Supply,1,,Cables and Adapters
-Panfore Power Supply,1,,Cables and Adapters
-ITE Power Supply,1,,Cables and Adapters
-Computer Peripherals,,,Computer Peripherals
-Logitech Wireless Keyboard ,1,No accessories,Computer Peripherals
-K350 Wireless Keyboard and Mouse,1,No accessories,Computer Peripherals
-Wired Keyboard,1,,Computer Peripherals
-Wired Microsoft Mouse,1,,Computer Peripherals
-IBM Wired Keyboard,1,,Computer Peripherals
-Monitors,,,Monitors
-"Dell 27"" Monitor with Stand and HDMI",2,,Monitors
-HannsG Monitor,1,,Monitors
-Dell Monitor,1,,Monitors
-Dell Monitor with Mount,1,,Monitors
-Dell Wide Stand (to hang/attach 2 monitors),1,,Monitors
-TVs,,,TVs
-Panasonic TV with Power Cable,1,,TVs
-Old HP TVs Bulky with Power Cables,2,,TVs
-Panasonic TV Remote,1,,TVs
-HP TV Remote,1,,TVs
-Other Accessories,,,Other Accessories
-Shrradoo Anti-theft Laptop Backpack,2,,Other Accessories
-Bluetooth Tracking Keychain with Selfie Remote,1,,Other Accessories
-Verbatim External CD/DVD Writer with Cable,1,Software Nero Burn Archive included,Other Accessories
-Inateck 2.4G Wireless Barcode Scanner,1,Includes USB cable and USB port receiver,Other Accessories
-Bluetooth Keyboards for Tablets with Props,4,,Other Accessories
-Insignia TV Wall Mount for Flat Panel TV (<50lbs),1,,Other Accessories
-Desktop Computer Tower,1,"Old, with optical and floppy disk",Other Accessories
-Honeywell Quad Battery Charger with Wall Plug,1,,Other Accessories
-Honeywell Rugged Device with Laser Scanner,2,Phone form factor,Other Accessories
-Handheld Scanner to Put Honeywell Device In,5,,Other Accessories
-MountIt Height Adjustable Anti-theft iPad Floor Stand,1,,Other Accessories
+Item,Comments,Quantity,Section,Combined_Section
+100W USB-C to USB-C cable,NA,2,Cables and Adapters,Cables & Adapters
+6ft USB Extension Cable,NA,1,Cables and Adapters,Cables & Adapters
+AT&T Cellular Galaxy Tab A,NA,2,Tablets,Tablets & Accessories
+Apple 30-pin to USB-A,NA,1,Cables and Adapters,Cables & Adapters
+Audio Cable 3.5mm,NA,3,Cables and Adapters,Cables & Adapters
+Audiocodes HTTPS Fax ATA,NA,1,Miscellaneous Tech,Miscellaneous & Accessories
+Benfei DisplayPort to HDMI Adapter,NA,2,Cables and Adapters,Cables & Adapters
+Black Galaxy Tab Cases,Not on tablets,14,Tablet Cases and Accessories,Tablets & Accessories
+Bluetooth Keyboard Case for Tab,NA,1,Tablet Cases and Accessories,Tablets & Accessories
+Bluetooth Keyboards for Tablets with Props,Includes a prop for the tablet,4,Other Accessories,Miscellaneous & Accessories
+Bluetooth Tracking Keychain with Selfie Remote,NA,1,Other Accessories,Miscellaneous & Accessories
+Brother Color Printer HL L8500CDN,NA,1,Printers and Scanners,Printers & Scanners
+Brother P-Touch Label Maker,NA,1,Printers and Scanners,Printers & Scanners
+Bytec Res Core Mobile External Hard Drive,NA,1,Storage Devices,Storage Devices
+CNPilot E510 Access Point,NA,2,Networking Equipment,Networking Equipment
+Casio DC1 Camera 3x Zoom,NA,1,Audio and Video Equipment,Audio & Video Equipment
+D-Link 5 Port Gigabit Ethernet Switch,NA,1,Networking Equipment,Networking Equipment
+DVI to HDMI Adapter,NA,4,Cables and Adapters,Cables & Adapters
+DYMO Embossing Label Maker,NA,1,Printers and Scanners,Printers & Scanners
+"Dell 27"" Monitor with Stand and HDMI",NA,2,Monitors,Peripherals & Displays
+Dell 45W DC Adapter,NA,1,Laptop Chargers,Laptops & Accessories
+Dell Laptop i3 Latitude 3520,Includes charger,1,Laptops,Laptops & Accessories
+Dell Laptop i3 Latitude 3520,"Low memory, no charger",1,Laptops,Laptops & Accessories
+Dell Latitude 3420 with charger,NA,2,Laptops,Laptops & Accessories
+Dell Latitude 5540,NA,2,Laptops,Laptops & Accessories
+Dell Monitor,NA,1,Monitors,Peripherals & Displays
+Dell Monitor with Mount,NA,1,Monitors,Peripherals & Displays
+Dell Notebook Power Bank Plus,Includes cables,1,Laptop Chargers,Laptops & Accessories
+Dell Tablet running Windows 8 Pro Intel,NA,3,Tablets,Tablets & Accessories
+Dell USB-C Docking Station,Includes cables,1,Laptop Accessories,Laptops & Accessories
+Dell USB-C Docking Station,Includes cables and power cables,2,Laptop Accessories,Laptops & Accessories
+Dell Wide Stand (to hang/attach 2 monitors),NA,1,Monitors,Peripherals & Displays
+Desktop Computer Tower,"Old, with optical and floppy disk",1,Other Accessories,Miscellaneous & Accessories
+DisplayPort to HDMI Adapter,NA,2,Cables and Adapters,Cables & Adapters
+Dymo Label Printer 450,"With Dymo software, AC adapter, USB cable",1,Printers and Scanners,Printers & Scanners
+E400 CNPilot Gigabit Access Point,NA,7,Networking Equipment,Networking Equipment
+Ethernet Cable,NA,1,Cables and Adapters,Cables & Adapters
+Ethernet Cable RJ45 Connector,NA,1,Cables and Adapters,Cables & Adapters
+Ethernet Cables,NA,6,Cables and Adapters,Cables & Adapters
+Extension Cords (short),NA,7,Cables and Adapters,Cables & Adapters
+Galaxy Tab Chargers with Bricks,NA,3,Tablet Chargers,Tablets & Accessories
+Galaxy Tabs,No case,2,Tablets,Tablets & Accessories
+Galaxy Tabs in black case,NA,3,Tablets,Tablets & Accessories
+Galaxy Tabs in orange case,NA,4,Tablets,Tablets & Accessories
+Generic Laptop Batteries,NA,2,Laptop Batteries,Laptops & Accessories
+HP TV Remote,NA,1,TVs,Peripherals & Displays
+Handheld Scanner to Put Honeywell Device In,NA,5,Other Accessories,Miscellaneous & Accessories
+HannsG Monitor,NA,1,Monitors,Peripherals & Displays
+Hipro 152 Watt Extra,,1,Other Accessories,Miscellaneous & Accessories
+Hipro 155 Watt Extra,,1,Other Accessories,Miscellaneous & Accessories
+Hipro 50W AC Adapter,NA,1,Miscellaneous Tech,Miscellaneous & Accessories
+Hipro 99 Watt Extra,,1,Other Accessories,Miscellaneous & Accessories
+Honeywell Quad Battery Charger with Wall Plug,NA,1,Other Accessories,Miscellaneous & Accessories
+Honeywell Rugged Device with Laser Scanner,Phone form factor,2,Other Accessories,Miscellaneous & Accessories
+IBM Wired Keyboard,NA,1,Computer Peripherals,Peripherals & Displays
+ITE Power Supply,NA,1,Cables and Adapters,Cables & Adapters
+Inateck 2.4G Wireless Barcode Scanner,Includes USB cable and USB port receiver,1,Other Accessories,Miscellaneous & Accessories
+Insignia TV Wall Mount for Flat Panel TV (<50lbs),NA,1,Other Accessories,Miscellaneous & Accessories
+Jabra USB Hub,NA,1,Cables and Adapters,Cables & Adapters
+Juniper Networks SRX300 Gateway Router,Includes Asian power devices adapter,1,Networking Equipment,Networking Equipment
+K350 Wireless Keyboard and Mouse,No accessories,1,Computer Peripherals,Peripherals & Displays
+Kensington Adjustable Laptop Riser and Cooling Stand,NA,2,Laptop Accessories,Laptops & Accessories
+"Kingwin 3.5"" Hard Drive",NA,1,Storage Devices,Storage Devices
+Lenovo 100e Chromebook,"Not working, Includes 65W charger",1,Laptops,Laptops & Accessories
+Lenovo 100e Chromebook Gen3 4GB RAM 32GB EMMC,Includes 65W charger,10,Laptops,Laptops & Accessories
+Lenovo 65W Laptop Charger,NA,2,Laptop Chargers,Laptops & Accessories
+Lenovo AMD4 Chromebook,Keyboard not working,1,Laptops,Laptops & Accessories
+Lenovo AMD4 Chromebook,NA,1,Laptops,Laptops & Accessories
+Lightning Cable,NA,34,Cables and Adapters,Cables & Adapters
+Linksys 2.4 GHz Wireless Access Point,NA,1,Networking Equipment,Networking Equipment
+Linksys Router with 4 Port Switch,NA,1,Networking Equipment,Networking Equipment
+Logitech Wireless Keyboard,No accessories,1,Computer Peripherals,Peripherals & Displays
+MountIt Height Adjustable Anti-theft iPad Floor Stand,iPad Stand,1,Other Accessories,Miscellaneous & Accessories
+Mouse and Keyboard Extension Cable (6-pin Belkin),NA,1,Cables and Adapters,Cables & Adapters
+Muzak Digital Music Power Amplifier,NA,1,Audio and Video Equipment,Audio & Video Equipment
+Netgear 8 Port Gigabit Ethernet Switch,NA,1,Networking Equipment,Networking Equipment
+Netgear ProSafe 16 Port Ethernet Switch,NA,1,Networking Equipment,Networking Equipment
+Old HP TVs Bulky with Power Cables,NA,4,Audio and Video Equipment,Audio & Video Equipment
+Old iPad in leather case,NA,1,Tablets,Tablets & Accessories
+Olympus 8MP Camera with AV Cable,NA,1,Audio and Video Equipment,Audio & Video Equipment
+Panasonic TV Remote,NA,1,TVs,Peripherals & Displays
+Panasonic TV with Power Cable,NA,2,Audio and Video Equipment,Audio & Video Equipment
+Panfore Power Supply,NA,1,Cables and Adapters,Cables & Adapters
+Panini Vision X Check Scanner,NA,1,Printers and Scanners,Printers & Scanners
+Power Supplies (generic),NA,4,Miscellaneous Tech,Miscellaneous & Accessories
+Power Supply,NA,1,Cables and Adapters,Cables & Adapters
+S20 FE 5G,NA,2,Phones,Phones & Accessories
+S21 Phone Case,NA,5,Phone Cases,Phones & Accessories
+S21+ Phone Case,NA,1,Phone Cases,Phones & Accessories
+ScanSnap Scanner,NA,1,Printers and Scanners,Printers & Scanners
+Seagate 1TB HDD Baracuda,NA,3,Storage Devices,Storage Devices
+Seagate 2TB 7200RPM SATA HDD,NA,3,Storage Devices,Storage Devices
+Shrradoo Anti-theft Laptop Backpack,NA,2,Other Accessories,Miscellaneous & Accessories
+SmartDrive Mobile Drive HDD,NA,1,Storage Devices,Storage Devices
+Supermicro Bundle of Jumper Wires,NA,1,Miscellaneous Tech,Miscellaneous & Accessories
+"Symbol Charge Cradle, DC Charger",NA,3,Miscellaneous Tech,Miscellaneous & Accessories
+Symbol Handheld Lithium Batteries,NA,8,Miscellaneous Tech,Miscellaneous & Accessories
+Tempered Glass Screen Protector Packs,NA,5,Tablet Cases and Accessories,Tablets & Accessories
+Thermal Transfer Ribbon Rolls,NA,8,Miscellaneous Tech,Miscellaneous & Accessories
+USB 2.0 Slim Portable Optical Drive with USB Cable,NA,1,Cables and Adapters,Cables & Adapters
+USB A Splitter (1 to 3),NA,1,Cables and Adapters,Cables & Adapters
+USB A to USB A,NA,3,Cables and Adapters,Cables & Adapters
+USB A to USB B,NA,7,Cables and Adapters,Cables & Adapters
+USB Gigabit LAN Cable,NA,1,Cables and Adapters,Cables & Adapters
+USB to HDMI Cable,NA,1,Cables and Adapters,Cables & Adapters
+USB-C to USB-C cable,NA,9,Cables and Adapters,Cables & Adapters
+UniFi Access Point AC Pro,NA,1,Networking Equipment,Networking Equipment
+VGA Adapter,NA,4,Cables and Adapters,Cables & Adapters
+VGA Cable,NA,3,Cables and Adapters,Cables & Adapters
+Verbatim External CD/DVD Writer with Cable,Software Nero Burn Archive included,1,Other Accessories,Miscellaneous & Accessories
+VisionTek USB Hub (no cable),NA,1,Cables and Adapters,Cables & Adapters
+Windows Surface with attachable keyboard,Attaches magnetically,1,Tablets,Tablets & Accessories
+Wired Keyboard,NA,1,Computer Peripherals,Peripherals & Displays
+Wired Microsoft Mouse,NA,1,Computer Peripherals,Peripherals & Displays
+Zyxel Smart Managed Switch GS1900,NA,1,Networking Equipment,Networking Equipment
+iPhone 11,NA,1,Phones,Phones & Accessories
+iPhone 5S,Unopened,1,Phones,Phones & Accessories
+iPhone 6S,NA,3,Phones,Phones & Accessories
+iPhone XR,NA,2,Phones,Phones & Accessories

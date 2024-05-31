@@ -108,10 +108,13 @@ server <- function(input, output, session) {
       )
     )
     
-    # FIX: Update inventory with new item, merging by Item, Section, and Comments
+    # If the user tries to add an item with the same name and set of comments, merge them
+    # Usually comments would be blank. If they have different comments, they should be kept separate
+    # Even if these items have different sections, we accept this as a user mistake and still merge, because they have the same item name
+    # In the case of different sections, they merge into the first (existing) category.
     updated_inventory <- bind_rows(inventory_data(), new_item) %>%
-      group_by(Item, Comments, Section, Combined_Section) %>%
-      summarise(Quantity = sum(Quantity, na.rm = TRUE), .groups = 'drop')
+      group_by(Item, Comments) %>%
+      summarise(Quantity = sum(Quantity, na.rm = TRUE), Section = first(Section), Combined_Section = first(Combined_Section), .groups = 'drop')
     inventory_data(updated_inventory)
     
     write_csv(updated_inventory, "TechInventory.csv")

@@ -60,12 +60,6 @@ server <- function(input, output, session) {
   # Securely stored hashed password (pre-hashed using sodium::password_store)
   hashed_password <- "$7$C6..../....LbSHcf7gGddIJ8ePwquEtXywH3rAGBhs3O9I/NWz60/$SFFJkNa1XLPXFYqEXqOADzRLb9huyw/KlRO5Fc7KjY8"
   
-  # Only user selections
-  filtered_data <- reactive({
-    inventory_combined %>%
-      filter(Combined_Section %in% input$sections)
-  })
-  
   # Only run the first initial time, inventory_combined doesn't change
   inventory_data <- reactiveVal(inventory_combined)
   
@@ -80,6 +74,12 @@ server <- function(input, output, session) {
     } else {
       showNotification("Incorrect password.", type = "error")
     }
+  })
+  
+  filtered_data <- reactive({
+    req(inventory_data()) 
+    inventory_data() %>%
+      filter(Combined_Section %in% input$sections) # Based on user selected sections
   })
   
   # Add item to inventory

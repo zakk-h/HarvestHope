@@ -46,7 +46,8 @@ ui <- fluidPage(
         passwordInput("admin_password", "Admin Password:"),
         actionButton("admin_login", "Admin Login")
       ),
-      hr()
+      hr(),
+      downloadButton("downloadData", "Download CSV")
     ),
     mainPanel(
       plotlyOutput("barPlot"),
@@ -79,12 +80,6 @@ server <- function(input, output, session) {
     } else {
       showNotification("Incorrect password.", type = "error")
     }
-  })
-  
-  filtered_data <- reactive({
-    req(inventory_data()) 
-    inventory_data() %>%
-      filter(Combined_Section %in% input$sections) # Based on user selected sections
   })
   
   # Add item to inventory
@@ -280,6 +275,15 @@ server <- function(input, output, session) {
     admin_status()
   })
   outputOptions(output, 'admin_status', suspendWhenHidden = FALSE)
+  
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste("inventory-", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write_csv(inventory_data(), file)
+    }
+  )
 }
 
 # Run the app

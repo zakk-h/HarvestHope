@@ -81,6 +81,12 @@ server <- function(input, output, session) {
     }
   })
   
+  filtered_data <- reactive({
+    req(inventory_data()) 
+    inventory_data() %>%
+      filter(Combined_Section %in% input$sections) # Based on user selected sections
+  })
+  
   # Add item to inventory
   observeEvent(input$add_item, {
     if (!admin_status()) {
@@ -120,18 +126,31 @@ server <- function(input, output, session) {
     write_csv(updated_inventory, "TechInventory.csv")
     
     output$dataTable <- renderDT({
-      datatable(inventory_data() %>%
-                  filter(Combined_Section %in% input$sections) %>%
-                  select(-Combined_Section) %>%
-                  mutate(Quantity = sprintf('%s <button id="minus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">+</button>', Quantity, row_number(), row_number())), 
-                escape = FALSE, 
-                options = list(pageLength = 10, autoWidth = TRUE, columnDefs = list(list(width = '200px', targets = 4))))
+      datatable(
+        filtered_data() %>%
+          select(-Combined_Section) %>%
+          mutate(Quantity = sprintf(
+            '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
+            Quantity, row_number(), row_number()
+          )),
+        escape = FALSE,
+        options = list(
+          pageLength = 10,
+          stateSave = TRUE,
+          autoWidth = FALSE,
+          columnDefs = list(
+            list(width = '150px', targets = 4),  # 5th column, adjusting + - column
+            list(className = 'dt-center', targets = "_all")
+          )
+        )
+      )
     }, server = FALSE)
+    
     
     showNotification("Item added to the inventory.", type = "message")
   })
   
-  # Render bar plot
+  # Initially render bar plot
   output$barPlot <- renderPlotly({
     data <- inventory_data() %>%
       group_by(Combined_Section) %>%
@@ -143,13 +162,25 @@ server <- function(input, output, session) {
              yaxis = list(title = 'Total Quantity'))
   })
   
-  # Render data table with plus and minus buttons
+  # Initially render data table with plus and minus buttons
   output$dataTable <- renderDT({
-    datatable(filtered_data() %>%
-                select(-Combined_Section) %>%
-                mutate(Quantity = sprintf('%s <button id="minus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">+</button>', Quantity, row_number(), row_number())), 
-              escape = FALSE, 
-              options = list(pageLength = 10, autoWidth = TRUE, columnDefs = list(list(width = '200px', targets = 4))))
+    datatable(
+      filtered_data() %>%
+        select(-Combined_Section) %>%
+        mutate(Quantity = sprintf(
+          '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
+          Quantity, row_number(), row_number()
+        )),
+      escape = FALSE,
+      options = list(
+        pageLength = 10,
+        autoWidth = FALSE,  
+        columnDefs = list(
+          list(width = '150px', targets = 4), 
+          list(className = 'dt-center', targets = "_all")
+        )
+      )
+    )
   }, server = FALSE)
   
   # Shinyjs to add JavaScript for handling button clicks
@@ -182,12 +213,24 @@ server <- function(input, output, session) {
     
     # Refresh the data table
     output$dataTable <- renderDT({
-      datatable(inventory_data() %>%
-                  filter(Combined_Section %in% input$sections) %>%
-                  select(-Combined_Section) %>%
-                  mutate(Quantity = sprintf('%s <button id="minus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">+</button>', Quantity, row_number(), row_number())), 
-                escape = FALSE, 
-                options = list(pageLength = 10, autoWidth = TRUE, columnDefs = list(list(width = '200px', targets = 4))))
+      datatable(
+        filtered_data() %>%
+          select(-Combined_Section) %>%
+          mutate(Quantity = sprintf(
+            '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
+            Quantity, row_number(), row_number()
+          )),
+        escape = FALSE,
+        options = list(
+          pageLength = 10,
+          stateSave = TRUE,
+          autoWidth = FALSE,  
+          columnDefs = list(
+            list(width = '150px', targets = 4), 
+            list(className = 'dt-center', targets = "_all")
+          )
+        )
+      )
     }, server = FALSE)
   })
   
@@ -212,12 +255,24 @@ server <- function(input, output, session) {
     
     # Refresh the data table
     output$dataTable <- renderDT({
-      datatable(inventory_data() %>%
-                  filter(Combined_Section %in% input$sections) %>%
-                  select(-Combined_Section) %>%
-                  mutate(Quantity = sprintf('%s <button id="minus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm" style="display: inline-block; width: 40px;">+</button>', Quantity, row_number(), row_number())), 
-                escape = FALSE, 
-                options = list(pageLength = 10, autoWidth = TRUE, columnDefs = list(list(width = '200px', targets = 4))))
+      datatable(
+        filtered_data() %>%
+          select(-Combined_Section) %>%
+          mutate(Quantity = sprintf(
+            '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
+            Quantity, row_number(), row_number()
+          )),
+        escape = FALSE,
+        options = list(
+          pageLength = 10,
+          stateSave = TRUE,
+          autoWidth = FALSE, 
+          columnDefs = list(
+            list(width = '150px', targets = 4),  # 5th column
+            list(className = 'dt-center', targets = "_all")
+          )
+        )
+      )
     }, server = FALSE)
   })
   

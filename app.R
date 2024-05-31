@@ -116,7 +116,10 @@ server <- function(input, output, session) {
     updated_inventory <- bind_rows(inventory_data(), new_item) %>%
       group_by(Item, Comments) %>%
       summarise(Quantity = sum(Quantity, na.rm = TRUE), Section = first(Section), Combined_Section = first(Combined_Section), .groups = 'drop')
+    
     inventory_data(updated_inventory)
+    
+    replaceData(dataTableProxy, filtered_data(), resetPaging = FALSE)
     
     write_csv(updated_inventory, "TechInventory.csv")
     
@@ -149,14 +152,17 @@ server <- function(input, output, session) {
       options = list(
         pageLength = 10,
         autoWidth = FALSE,  
-        stateSave = TRUE,
+        stateSave = FALSE,
         columnDefs = list(
           list(width = '150px', targets = 4), 
           list(className = 'dt-center', targets = "_all")
         )
       )
     )
-  }, server = FALSE)
+  }, server = TRUE)
+  
+  dataTableProxy <- dataTableProxy('dataTable')
+  
   
   # Shinyjs to add JavaScript for handling button clicks
   observe({
@@ -180,11 +186,18 @@ server <- function(input, output, session) {
       return()
     }    
     plus_index <- as.numeric(sub("plus_", "", input$plus_button))
-    updated_inventory <- inventory_data()
+    updated_inventory <- isolate(inventory_data())
     updated_inventory$Quantity[plus_index] <- updated_inventory$Quantity[plus_index] + 1
+    
+    
     inventory_data(updated_inventory)
     
+    replaceData(dataTableProxy, filtered_data(), resetPaging = FALSE)
+  
+    
     write_csv(updated_inventory, "TechInventory.csv")
+    
+  
     
   })
   
@@ -195,7 +208,7 @@ server <- function(input, output, session) {
       return()
     }    
     minus_index <- as.numeric(sub("minus_", "", input$minus_button))
-    updated_inventory <- inventory_data()
+    updated_inventory <- isolate(inventory_data())
     updated_inventory$Quantity[minus_index] <- updated_inventory$Quantity[minus_index] - 1
     
     # Remove item if quantity reaches 0
@@ -204,6 +217,8 @@ server <- function(input, output, session) {
     }
     
     inventory_data(updated_inventory)
+    
+    replaceData(dataTableProxy, filtered_data(), resetPaging = FALSE)
     
     write_csv(updated_inventory, "TechInventory.csv")
     

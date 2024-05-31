@@ -20,7 +20,8 @@ inventory_combined <- inventory %>%
     Section %in% c("Computer Peripherals", "Monitors", "TVs") ~ "Peripherals & Displays",
     Section %in% c("Miscellaneous Tech", "Other Accessories") ~ "Miscellaneous & Accessories",
     TRUE ~ Section # Else, label them as they already were
-  ))
+  )) %>%
+  mutate(RowID = row_number())  # Assign a unique ID here to keep better track of them even when some sections are unchecked or sorted differently
 
 colors <- c("deepskyblue", "mediumpurple", "plum", "forestgreen", "orange", "orchid", "gold", "lightcoral", "blueviolet", "darkorchid")
 
@@ -139,14 +140,14 @@ server <- function(input, output, session) {
              yaxis = list(title = 'Total Quantity'))
   })
   
-  # Initially render data table with plus and minus buttons
+  # Initially render data table
   output$dataTable <- renderDT({
     datatable(
-      filtered_data() %>%
+      data <- filtered_data() %>%
         select(-Combined_Section) %>%
         mutate(Quantity = sprintf(
           '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
-          Quantity, row_number(), row_number()
+          Quantity, RowID, RowID
         )),
       escape = FALSE,
       options = list(
@@ -167,16 +168,16 @@ server <- function(input, output, session) {
   # Shinyjs to add JavaScript for handling button clicks
   observe({
     shinyjs::runjs("
-      $(document).on('click', 'button[id^=plus_]', function() {
-        var id = $(this).attr('id');
-        Shiny.setInputValue('plus_button', id, {priority: 'event'});
-      });
-      
-      $(document).on('click', 'button[id^=minus_]', function() {
-        var id = $(this).attr('id');
-        Shiny.setInputValue('minus_button', id, {priority: 'event'});
-      });
-    ")
+    $(document).on('click', 'button[id^=plus_]', function() {
+      var id = $(this).attr('id');
+      Shiny.setInputValue('plus_button', id, {priority: 'event'});
+    });
+    
+    $(document).on('click', 'button[id^=minus_]', function() {
+      var id = $(this).attr('id');
+      Shiny.setInputValue('minus_button', id, {priority: 'event'});
+    });
+  ")
   })
   
   # Handle plus button click
@@ -187,8 +188,9 @@ server <- function(input, output, session) {
     }    
     plus_index <- as.numeric(sub("plus_", "", input$plus_button))
     updated_inventory <- isolate(inventory_data())
-    updated_inventory$Quantity[plus_index] <- updated_inventory$Quantity[plus_index] + 1
     
+    target_row <- which(updated_inventory$RowID == plus_index)
+    updated_inventory$Quantity[target_row] <- updated_inventory$Quantity[target_row] + 1    
     
     inventory_data(updated_inventory)
     
@@ -209,7 +211,9 @@ server <- function(input, output, session) {
     }    
     minus_index <- as.numeric(sub("minus_", "", input$minus_button))
     updated_inventory <- isolate(inventory_data())
-    updated_inventory$Quantity[minus_index] <- updated_inventory$Quantity[minus_index] - 1
+    
+    target_row <- which(updated_inventory$RowID == minus_index)
+    updated_inventory$Quantity[target_row] <- updated_inventory$Quantity[target_row] - 1
     
     # Remove item if quantity reaches 0
     if (updated_inventory$Quantity[minus_index] <= 0) {

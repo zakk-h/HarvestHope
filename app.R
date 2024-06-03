@@ -124,7 +124,6 @@ server <- function(input, output, session) {
     
     write_csv(updated_inventory, "TechInventory.csv")
     
-    
     showNotification("Item added to the inventory.", type = "message")
   })
   
@@ -153,7 +152,7 @@ server <- function(input, output, session) {
       options = list(
         pageLength = 10,
         autoWidth = FALSE,  
-        stateSave = FALSE,
+        stateSave = TRUE,
         columnDefs = list(
           list(width = '150px', targets = 4), 
           list(className = 'dt-center', targets = "_all")
@@ -166,10 +165,11 @@ server <- function(input, output, session) {
   
   
   # Shinyjs to add JavaScript for handling button clicks
+  # Send id to Shiny server with setInputValue, then it can trigger server side observeEvent (+, -)
   observe({
     shinyjs::runjs("
     $(document).on('click', 'button[id^=plus_]', function() {
-      var id = $(this).attr('id');
+      var id = $(this).attr('id'); 
       Shiny.setInputValue('plus_button', id, {priority: 'event'});
     });
     

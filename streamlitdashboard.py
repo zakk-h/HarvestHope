@@ -12,11 +12,13 @@ creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"],
 client = gspread.authorize(creds)
 
 # Load data from Google Sheets
+@st.cache_data
 def load_data(worksheet_name):
     sheet = client.open("HH Inventory").worksheet(worksheet_name)
     return pd.DataFrame(sheet.get_all_records())
 
 # Processing Data
+@st.cache_data
 def process_data(data):
     if 'Total Charges' in data.columns:
         data['Total Charges'] = pd.to_numeric(data['Total Charges'].replace('[\$,]', '', regex=True), errors='coerce')
@@ -27,9 +29,16 @@ def process_data(data):
         data['Total Value'] = data['Quantity'] * data['Estimated Price']
     return data
 
-# Load and process data
-data_server = process_data(load_data('ServerSandbox'))
-data_phone = process_data(load_data('PhoneSandbox'))
+# Load and process data on first time
+if 'data_server' not in st.session_state:
+    st.session_state.data_server = process_data(load_data('ServerSandbox'))
+
+if 'data_phone' not in st.session_state:
+    st.session_state.data_phone = process_data(load_data('PhoneSandbox'))
+
+# Use session state data for rendering in the app
+data_server = st.session_state.data_server
+data_phone = st.session_state.data_phone
 
 anonymize = st.secrets["environment"].get("ANONYMIZE", "False") == "True"
 

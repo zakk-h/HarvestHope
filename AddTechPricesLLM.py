@@ -16,7 +16,7 @@ def get_price_from_llm(model_name):
     try:
         # Extract the price from the response
         price_text = response[0]['generated_text']
-        price = float(re.findall(r'\d+', price_text)[0])
+        price = float(re.findall(r'\d+', price_text)[0]) # Take the first numerical value found.
     except Exception as e:
         print(f"Error parsing response for model {model_name}: {e}")
         price = 0  # Default to 0 if extraction fails

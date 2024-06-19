@@ -1,4 +1,80 @@
-# Harvest Hope Inventory Management Shiny App
+# Harvest Hope Inventory Management Dashboards and Scripts
+
+
+
+
+# Harvest Hope Asset Management Streamlit App
+
+## Introduction
+This repository hosts scripts to edit and merge spreadsheets or CSV files, as well as two web applications that serve as workbooks or dashboards for Harvest Hope's inventory and assets. The Streamlit and Shiny applications are briefly described and linked below, and then full documentation for each is provided later in the readme. 
+
+### Overview
+This Streamlit application was developed to provide a centralized dashboard for managing and visualizing all tech equipment and contracts for Harvest Hope, a non-profit organization. The application connects directly to Google Sheets to fetch the latest data, offering an interactive and user-friendly interface for viewing, editing, and updating records. This centralized workbook accounts for all equipment and contracts for each employee, tracking company assets and providing valuable insights.
+
+You can access the live app [here](https://hhequipment.streamlit.app).
+
+### Harvest Hope Inventory Management Shiny App
+This Shiny application was developed to manage and visualize inventory data for Harvest Hope, a non-profit organization. The primary purpose of the application is to provide an interactive and user-friendly interface for viewing, editing, and updating inventory records, which were previously maintained in a spreadsheet. 
+You can access the live app <a href="https://zakk-h.shinyapps.io/harvesthope" target="_blank">here</a>.
+
+# Harvest Hope Asset Management Documentation App
+
+## Overview
+This Streamlit application was developed to provide a centralized dashboard for managing and visualizing all tech equipment and contracts for Harvest Hope, a non-profit organization. The application connects directly to Google Sheets to fetch the latest data, offering an interactive and user-friendly interface for viewing, editing, and updating records. This centralized workbook accounts for all equipment and contracts for each employee, tracking company assets and providing valuable insights.
+
+You can access the live app [here](https://hhequipment.streamlit.app).
+
+<a href="https://hhequipment.streamlit.app" target="_blank">
+  <img src="https://img.shields.io/badge/Streamlit-app-blue" alt="Streamlit App">
+</a>
+
+## Features
+- **Data Visualization**: Provides various visualizations including bar charts, pie charts, and heatmaps to represent inventory and subscription data.
+- **Interactive Data Tables**: Displays inventory data in a searchable and sortable table.
+- **Summary Cards**: Shows key metrics like total inventory value, total annual subscription costs, and total phones value.
+- **Data Integration with Google Sheets**: Connects directly to Google Sheets to fetch and display real-time data.
+- **Data Anonymization**: Option to anonymize user data (names, etc) that were entered into sheets when displayed in the app for privacy.
+- **Download Data**: Option to download the current displayed data tables as a CSV file.
+
+## Getting Started
+
+### Installation
+Install the required packages using `requirements.txt`:
+```bash
+pip install -r requirements.txt
+```
+
+### Configuration
+Create a `.streamlit/secrets.toml` file to store your Google Sheets API credentials and anonymization setting:
+```toml
+[gcp_service_account]
+type = "service_account"
+project_id = "your_project_id"
+private_key_id = "your_private_key_id"
+private_key = '''
+-----BEGIN PRIVATE KEY-----
+your_private_key
+-----END PRIVATE KEY-----
+'''
+client_email = "your_client_email"
+client_id = "your_client_id"
+auth_uri = "https://accounts.google.com/o/oauth2/auth"
+token_uri = "https://oauth2.googleapis.com/token"
+auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/your_client_email"
+universe_domain = "googleapis.com"
+
+[app_settings]
+anonymize = true
+```
+
+### Running the App
+Run the application using the following command:
+```bash
+streamlit run streamlitdashboard.py
+```
+
+# Harvest Hope Inventory Management Shiny App Documentation
 
 ## Overview
 This Shiny application was developed to manage and visualize inventory data for Harvest Hope, a non-profit organization. The primary purpose of the application is to provide an interactive and user-friendly interface for viewing, editing, and updating inventory records, which were previously maintained in a spreadsheet. 

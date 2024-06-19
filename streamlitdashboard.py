@@ -4,7 +4,6 @@ from google.oauth2.service_account import Credentials
 import pandas as pd
 import plotly.express as px
 import numpy as np
-import os
 
 # Authenication - Secure way to handle API keys or credentials without including it in the app's public files
 scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]

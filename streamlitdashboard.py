@@ -4,6 +4,7 @@ from google.oauth2.service_account import Credentials
 import pandas as pd
 import plotly.express as px
 import numpy as np
+import os
 
 # Authenication - Secure way to handle API keys or credentials without including it in the app's public files
 scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -29,6 +30,12 @@ def process_data(data):
 # Load and process data
 data_server = process_data(load_data('ServerSandbox'))
 data_phone = process_data(load_data('PhoneSandbox'))
+
+anonymize = os.getenv('ANONYMIZE', 'False') == 'True'
+
+# Anonymize user names if the environment variable is set to True
+if anonymize:
+    data_phone['Username'] = ['User ' + str(i) for i in range(len(data_phone))]
 
 # Calculate summaries
 total_inventory_value = data_server['Total Value'].sum()

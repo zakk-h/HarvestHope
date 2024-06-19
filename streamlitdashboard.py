@@ -31,7 +31,7 @@ def process_data(data):
 data_server = process_data(load_data('ServerSandbox'))
 data_phone = process_data(load_data('PhoneSandbox'))
 
-anonymize = os.getenv('ANONYMIZE', 'False') == 'True'
+anonymize = st.secrets["environment"].get("ANONYMIZE", "False") == "True"
 
 # Anonymize user names if the environment variable is set to True
 if anonymize:

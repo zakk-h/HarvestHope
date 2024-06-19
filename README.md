@@ -31,8 +31,8 @@ You can access the live app [here](https://hhequipment.streamlit.app).
 - **Data Visualization**: Provides various visualizations including bar charts, pie charts, and heatmaps to represent inventory and subscription data.
 - **Interactive Data Tables**: Displays inventory data in a searchable and sortable table.
 - **Summary Cards**: Shows key metrics like total inventory value, total annual subscription costs, and total phones value.
-- **Data Integration with Google Sheets**: Connects directly to Google Sheets to fetch and display real-time data.
-- **Data Anonymization**: Option to anonymize user data (names, etc) that were entered into sheets when displayed in the app for privacy.
+- **Data Integration with Google Sheets**: Connects directly to Google Sheets through a service account to fetch and display real-time data. The credentials required for accessing Google Sheets with the same privileges as the service account are securely stored in the .streamlit/secrets.toml file, ensuring that sensitive information is not exposed to users when the app is hosted. This integration allows seamless synchronization of data without manual uploads or updates.
+- **Data Anonymization**: Option to anonymize user data (names, etc) that were entered into sheets when displayed in the app for privacy. When the anonymization flag is enabled, all personal identifiers are replaced with generic labels (e.g., "User 1", "User 2"). This ensures that sensitive information is not visible to app users. The anonymization setting is managed through a flag stored in the .streamlit/secrets.toml file, which is part of the backend. This setup ensures that the flag is inaccessible to users and consistently enforces privacy policies.
 - **Download Data**: Option to download the current displayed data tables as a CSV file.
 
 ## Getting Started
@@ -125,5 +125,5 @@ shiny::runApp()
 # Scripts
 Additionally, there are several scripts included in the project that can perform the following tasks:
 - Estimate the price of phone models based on predefined criteria.
-- Use a language model to generate price estimates for phone models.
-- Merge data from different CSV files to create a comprehensive dataset.
+- Use a language model to generate price estimates for phone models. The GPT-2 model runs locally and provides a free method for estimating prices without the same casework and predefined criteria, but as it is a text-generation model without real-time data, it is very inaccurate.
+- Merge data from different CSV files to create a comprehensive dataset of billing and subscription information.

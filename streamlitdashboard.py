@@ -103,8 +103,16 @@ st.subheader("Explore Data")
 st.write("Phone Data")
 st.dataframe(data_phone)
 
+# Download Button
+#phone_csv = data_phone.to_csv(index=False)
+#st.download_button(label="Download Phone Data as CSV", data=phone_csv, file_name='phone_data.csv', mime='text/csv')
+
 st.write("Server Equipment Data")
 st.dataframe(data_server)
+
+# Download Button
+#server_csv = data_server.to_csv(index=False)
+#st.download_button(label="Download Server Data as CSV", data=server_csv, file_name='server_data.csv', mime='text/csv')
 
 # Filtering Options
 st.subheader("Filter Data")
@@ -113,3 +121,7 @@ filtered_data_phone = data_phone[data_phone['Location'] == selected_location]
 
 st.write(f"Filtered Data for Location: {selected_location}")
 st.dataframe(filtered_data_phone)
+
+# Download Button
+#filtered_phone_csv = filtered_data_phone.to_csv(index=False)
+#st.download_button(label=f"Download Filtered Phone Data for {selected_location} as CSV", data=filtered_phone_csv, file_name=f'filtered_phone_data_{selected_location}.csv', mime='text/csv')

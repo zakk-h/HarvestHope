@@ -3,21 +3,20 @@
 
 
 
-# Harvest Hope Asset Management Streamlit App
 
 ## Introduction
 This repository hosts scripts to edit and merge spreadsheets or CSV files, as well as two web applications that serve as workbooks or dashboards for Harvest Hope's inventory and assets. The Streamlit and Shiny applications are briefly described and linked below, and then full documentation for each is provided later in the readme. 
 
-### Overview
-This Streamlit application was developed to provide a centralized dashboard for managing and visualizing all tech equipment and contracts for Harvest Hope, a non-profit organization. The application connects directly to Google Sheets to fetch the latest data, offering an interactive and user-friendly interface for viewing, editing, and updating records. This centralized workbook accounts for all equipment and contracts for each employee, tracking company assets and providing valuable insights.
+### Streamlit App
+This Streamlit application was developed to provide a centralized dashboard for managing and visualizing all tech equipment and contracts for Harvest Hope. The application connects directly to Google Sheets to fetch the latest data for all equipment and contracts for each employee, tracking company assets.
 
 You can access the live app [here](https://hhequipment.streamlit.app).
 
-### Harvest Hope Inventory Management Shiny App
-This Shiny application was developed to manage and visualize inventory data for Harvest Hope, a non-profit organization. The primary purpose of the application is to provide an interactive and user-friendly interface for viewing, editing, and updating inventory records, which were previously maintained in a spreadsheet. 
+### Shiny App
+This Shiny application was developed to manage and visualize inventory data for Harvest Hope. The primary purpose of the application is to provide an interactive and user-friendly interface for viewing, editing, and updating inventory records, which were previously maintained in a spreadsheet. 
 You can access the live app <a href="https://zakk-h.shinyapps.io/harvesthope" target="_blank">here</a>.
 
-# Harvest Hope Asset Management Documentation App
+# Asset Management Streamlit App Documentation
 
 ## Overview
 This Streamlit application was developed to provide a centralized dashboard for managing and visualizing all tech equipment and contracts for Harvest Hope, a non-profit organization. The application connects directly to Google Sheets to fetch the latest data, offering an interactive and user-friendly interface for viewing, editing, and updating records. This centralized workbook accounts for all equipment and contracts for each employee, tracking company assets and providing valuable insights.
@@ -74,7 +73,7 @@ Run the application using the following command:
 streamlit run streamlitdashboard.py
 ```
 
-# Harvest Hope Inventory Management Shiny App Documentation
+# Inventory Management Shiny App Documentation
 
 ## Overview
 This Shiny application was developed to manage and visualize inventory data for Harvest Hope, a non-profit organization. The primary purpose of the application is to provide an interactive and user-friendly interface for viewing, editing, and updating inventory records, which were previously maintained in a spreadsheet. 
@@ -122,3 +121,9 @@ shiny::runApp()
 ## Future Enhancements
 - Transitioning from CSV to Google Sheets or a database system for real-time updates, concurrent modification, and improved data consistency.
 - Adding features such as time-based notifications, change history, and the ability to update item sections.
+
+# Scripts
+Additionally, there are several scripts included in the project that can perform the following tasks:
+- Estimate the price of phone models based on predefined criteria.
+- Use a language model to generate price estimates for phone models.
+- Merge data from different CSV files to create a comprehensive dataset.

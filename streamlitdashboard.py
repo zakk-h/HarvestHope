@@ -4,8 +4,9 @@ from google.oauth2.service_account import Credentials
 import pandas as pd
 import plotly.express as px
 import numpy as np
+from st_aggrid import AgGrid, GridOptionsBuilder
 
-# Authenication - Secure way to handle API keys or credentials without including it in the app's public files
+# Authentication - Secure way to handle API keys or credentials without including it in the app's public files
 scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
 client = gspread.authorize(creds)
@@ -42,7 +43,6 @@ total_annual_subscription = data_phone['Annual Charges'].sum()
 phones_value = data_phone['Estimated Price'].sum()
 storage_value = total_inventory_value  # Since all server items are in storage
 
-# Dashboard Title
 st.title("Harvest Hope Tech Dashboard")
 
 # Summary Cards
@@ -66,26 +66,12 @@ fig_phone_charges = px.bar(data_phone.groupby('Location')['Annual Charges'].sum(
                            color='Location')
 st.plotly_chart(fig_phone_charges)
 
-# Heatmap: Distribution of Phone Costs Across Locations
-#heatmap_data = data_phone.groupby('Location')['Estimated Price'].sum().reset_index()
-#heatmap_data['Log Price'] = np.log1p(heatmap_data['Estimated Price'])  # Use log scale for better visualization
-
-#fig_heatmap = px.density_heatmap(heatmap_data, x='Location', y='Log Price', z='Estimated Price',
-#                                 title="Heatmap of Phone Costs by Location",
-#                                 labels={'Log Price': 'Log of Estimated Price ($)', 'Location': 'Location'},
-#                                 color_continuous_scale='Viridis')
-#st.plotly_chart(fig_heatmap)
-
 # Pie Charts
 st.subheader("Inventory and Subscription Distribution")
 
 fig_inventory_pie = px.pie(data_server, values='Total Value', names='Section',
                            title="Storage Distribution by Category")
-
-
 st.plotly_chart(fig_inventory_pie)
-
-
 
 fig_subscription_pie = px.pie(data_phone, values='Annual Charges', names='Location',
                               title="Subscription Cost Distribution by Location")
@@ -98,21 +84,22 @@ fig_admin_charges = px.bar(data_phone.groupby('Administration')['Annual Charges'
                            color='Administration')
 st.plotly_chart(fig_admin_charges)
 
-# Interactive Data Tables
+# Interactive Data Tables with Download Buttons
 st.subheader("Explore Data")
-st.write("Phone Data")
-st.dataframe(data_phone)
 
-# Download Button
-#phone_csv = data_phone.to_csv(index=False)
-#st.download_button(label="Download Phone Data as CSV", data=phone_csv, file_name='phone_data.csv', mime='text/csv')
+st.write("Phone Data")
+grid_options = GridOptionsBuilder.from_dataframe(data_phone).build()
+AgGrid(data_phone, gridOptions=grid_options)
+
+phone_csv = data_phone.to_csv(index=False).encode('utf-8')
+st.download_button(label="Download Phone Data as CSV", data=phone_csv, file_name='phone_data.csv', mime='text/csv')
 
 st.write("Server Equipment Data")
-st.dataframe(data_server)
+grid_options = GridOptionsBuilder.from_dataframe(data_server).build()
+AgGrid(data_server, gridOptions=grid_options)
 
-# Download Button
-#server_csv = data_server.to_csv(index=False)
-#st.download_button(label="Download Server Data as CSV", data=server_csv, file_name='server_data.csv', mime='text/csv')
+server_csv = data_server.to_csv(index=False).encode('utf-8')
+st.download_button(label="Download Server Data as CSV", data=server_csv, file_name='server_data.csv', mime='text/csv')
 
 # Filtering Options
 st.subheader("Filter Data")
@@ -120,8 +107,8 @@ selected_location = st.selectbox("Select Location", options=data_phone['Location
 filtered_data_phone = data_phone[data_phone['Location'] == selected_location]
 
 st.write(f"Filtered Data for Location: {selected_location}")
-st.dataframe(filtered_data_phone)
+grid_options = GridOptionsBuilder.from_dataframe(filtered_data_phone).build()
+AgGrid(filtered_data_phone, gridOptions=grid_options)
 
-# Download Button
-#filtered_phone_csv = filtered_data_phone.to_csv(index=False)
-#st.download_button(label=f"Download Filtered Phone Data for {selected_location} as CSV", data=filtered_phone_csv, file_name=f'filtered_phone_data_{selected_location}.csv', mime='text/csv')
+filtered_phone_csv = filtered_data_phone.to_csv(index=False).encode('utf-8')
+st.download_button(label=f"Download Filtered Phone Data for {selected_location} as CSV", data=filtered_phone_csv, file_name=f'filtered_phone_data_{selected_location}.csv', mime='text/csv')

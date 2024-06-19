@@ -5,12 +5,10 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 
-# Secure way to handle API keys or credentials without including it in the app's public files
-creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"])
-
-# Authentication
+# Authenication - Secure way to handle API keys or credentials without including it in the app's public files
+scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
 client = gspread.authorize(creds)
-
 
 # Load data from Google Sheets
 def load_data(worksheet_name):

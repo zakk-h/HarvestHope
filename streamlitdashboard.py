@@ -85,19 +85,18 @@ fig_inventory_pie = px.pie(data_server, values='Total Value', names='Section',
 
 st.plotly_chart(fig_inventory_pie)
 
-col4, col5 = st.columns(2)
 
 
 fig_subscription_pie = px.pie(data_phone, values='Annual Charges', names='Location',
                               title="Subscription Cost Distribution by Location")
-col4.plotly_chart(fig_subscription_pie)
+st.plotly_chart(fig_subscription_pie)
 
 data_phone['Administration'] = data_phone['Administration'].map({'Y': 'Yes', 'N': 'No'})
 fig_admin_charges = px.bar(data_phone.groupby('Administration')['Annual Charges'].sum().reset_index(),
                            x='Administration', y='Annual Charges', title="Annual Phone Charges: Administration vs Non-Administration",
                            labels={'Annual Charges': 'Total Annual Charges ($)', 'Administration': 'Administration'},
                            color='Administration')
-col5.plotly_chart(fig_admin_charges)
+st.plotly_chart(fig_admin_charges)
 
 # Interactive Data Tables
 st.subheader("Explore Data")

@@ -32,17 +32,23 @@ if st.session_state['clearance_level'] != 'high':
             st.session_state['authenticated'] = True
             st.session_state['clearance_level'] = 'high' if is_high_level else 'low'
             st.success(f"Authenticated with {st.session_state['clearance_level']} level clearance")
-            st.experimental_rerun()
+            if is_high_level: st.rerun() # run script from beginning (will recognize authenication from session_state and avoid password prompt)
 
 if st.session_state['authenticated']:
-    # Authentication - Secure way to handle API keys or credentials without including it in the app's public files
-    scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
-    client = gspread.authorize(creds)
-
+    # Cache the scope, credentials, and client authorization
+    @st.cache_resource
+    def get_gspread_client():
+        # Authentication - Secure way to handle API keys or credentials without including it in the app's public files
+        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
+        client = gspread.authorize(creds)
+        return client
+ 
     # Load data from Google Sheets
     @st.cache_data(show_spinner=False)
     def load_data(worksheet_name):
+        # Use cached client
+        client = get_gspread_client()
         sheet = client.open("HH Inventory").worksheet(worksheet_name)
         return pd.DataFrame(sheet.get_all_records())
 
@@ -67,7 +73,7 @@ if st.session_state['authenticated']:
 
     # Use session state data for rendering in the app
     data_server = st.session_state.data_server
-    data_phone = st.session_state.data_phone
+    data_phone = st.session_state.data_phone.copy() # avoid modifying properties like usernames in the original. without .copy, they would refer to the same object.
 
     #anonymize names in data if user lacks sufficient clearance
     if st.session_state['clearance_level'] != 'high':

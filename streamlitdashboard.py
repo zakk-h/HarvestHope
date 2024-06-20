@@ -15,12 +15,25 @@ def verify_password(user_input, hashed):
 low_level_hash = st.secrets["clearance"]["low_level"]
 high_level_hash = st.secrets["clearance"]["high_level"]
 
+# Initialize session state variables
+if 'authenticated' not in st.session_state:
+    st.session_state['authenticated'] = False
+if 'clearance_level' not in st.session_state:
+    st.session_state['clearance_level'] = None
+
 # Ask for password
-password = st.text_input("Enter the password to access the dashboard:", type="password")
+if st.session_state['clearance_level'] != 'high':
+    password = st.text_input("Enter the password to access the dashboard:", type="password")
 
-if password == "": pass #do nothing, waiting on input
-elif verify_password(password, low_level_hash) or verify_password(password, high_level_hash): #sufficient clearance
+    if password:
+        is_high_level = verify_password(password, high_level_hash)  
+        is_low_level = verify_password(password, low_level_hash)
+        if is_high_level or is_low_level: # sufficient clearance
+            st.session_state['authenticated'] = True
+            st.session_state['clearance_level'] = 'high' if is_high_level else 'low'
+            st.success(f"Authenticated with {st.session_state['clearance_level']} level clearance")
 
+if st.session_state['authenticated']:
     # Authentication - Secure way to handle API keys or credentials without including it in the app's public files
     scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
@@ -56,12 +69,7 @@ elif verify_password(password, low_level_hash) or verify_password(password, high
     data_phone = st.session_state.data_phone
 
     #anonymize names in data if user lacks sufficient clearance
-    if not verify_password(password, high_level_hash):
-        anonymize = True
-    else:
-        anonymize = False
-
-    if anonymize:
+    if not is_high_level:
         data_phone['Username'] = ['User ' + str(i) for i in range(len(data_phone))]
 
     # Calculate summaries
@@ -139,6 +147,5 @@ elif verify_password(password, low_level_hash) or verify_password(password, high
 
     filtered_phone_csv = filtered_data_phone.to_csv(index=False).encode('utf-8')
     st.download_button(label=f"Download Filtered Phone Data for {selected_location} as CSV", data=filtered_phone_csv, file_name=f'filtered_phone_data_{selected_location}.csv', mime='text/csv')
-
-else:
-    st.error("The password you entered is incorrect. Please try again.")
+elif password != "":
+        st.error("The password you entered is incorrect. Please try again.")

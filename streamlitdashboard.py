@@ -7,10 +7,6 @@ import numpy as np
 from st_aggrid import AgGrid, GridOptionsBuilder
 import hashlib
 
-# Function to verify the password
-def verify_password(user_input, hashed):
-    return hashlib.sha256(user_input.encode()).hexdigest() == hashed
-
 # Password Hash
 low_level_hash = st.secrets["clearance"]["low_level"]
 high_level_hash = st.secrets["clearance"]["high_level"]
@@ -25,7 +21,12 @@ if 'clearance_level' not in st.session_state:
 if st.session_state['clearance_level'] != 'high':
     password = st.text_input("Enter the password to access the dashboard:", type="password")
 
-    if password:
+    if password: # if password is 'truthy' - not None, empty string, etc
+
+        # Function to verify the password
+        def verify_password(user_input, hashed):
+            return hashlib.sha256(user_input.encode()).hexdigest() == hashed
+        
         is_high_level = verify_password(password, high_level_hash)  
         is_low_level = verify_password(password, low_level_hash)
         if is_high_level or is_low_level: # sufficient clearance

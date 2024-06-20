@@ -32,6 +32,7 @@ if st.session_state['clearance_level'] != 'high':
             st.session_state['authenticated'] = True
             st.session_state['clearance_level'] = 'high' if is_high_level else 'low'
             st.success(f"Authenticated with {st.session_state['clearance_level']} level clearance")
+            st.experimental_rerun()
 
 if st.session_state['authenticated']:
     # Authentication - Secure way to handle API keys or credentials without including it in the app's public files
@@ -69,7 +70,7 @@ if st.session_state['authenticated']:
     data_phone = st.session_state.data_phone
 
     #anonymize names in data if user lacks sufficient clearance
-    if not is_high_level:
+    if st.session_state['clearance_level'] != 'high':
         data_phone['Username'] = ['User ' + str(i) for i in range(len(data_phone))]
 
     # Calculate summaries

@@ -81,13 +81,13 @@ server <- function(input, output, session) {
   
   # Securely stored hashed password (pre-hashed using sodium::password_store)
   hashed_password <- "$7$C6..../....LbSHcf7gGddIJ8ePwquEtXywH3rAGBhs3O9I/NWz60/$SFFJkNa1XLPXFYqEXqOADzRLb9huyw/KlRO5Fc7KjY8"
-  
+  hashed_password2 <- "$7$C6..../....QU2sOUMM2vmJPCZNeVS4Ati3MNamWb7waBp110ecKJ4$wBJaXPqeXSwSBrUy5gYtkqi9I3pURbFjVfFT9zTxxj."
   inventory_data <- reactiveVal()
   
   observe({
     invalidateLater(30000, session)  # Refresh data every 30 seconds to keep it fresh from concurrent modifications
-    inventory <- read_inventory()
-    inventory_data(inventory)
+    inventory <- read_inventory() # Adding, removing, etc all do not need this functionality - they pull the latest right before they write
+    inventory_data(inventory) # This is mainly for extensive idle time
     updateCheckboxGroupInput(session, "sections", choices = unique(inventory$Combined_Section), selected = unique(inventory$Combined_Section))
     updateSelectInput(session, "item_section", choices = unique(inventory$Section))
   })
@@ -95,7 +95,7 @@ server <- function(input, output, session) {
   admin_status <- reactiveVal(FALSE)
   
   observeEvent(input$admin_login, {
-    if (sodium::password_verify(hashed_password, input$admin_password)) {
+    if (sodium::password_verify(hashed_password, input$admin_password) | sodium::password_verify(hashed_password2, input$admin_password)) {
       admin_status(TRUE)
       showNotification("Logged in as admin.", type = "message")
     } else {
@@ -152,7 +152,7 @@ server <- function(input, output, session) {
       options = list(
         pageLength = 10,
         autoWidth = FALSE,
-        stateSave = TRUE,
+        stateSave = FALSE,
         scrollX = TRUE,
         scrollY = 'calc(100vh - 250px)',
         columnDefs = list(
@@ -217,13 +217,19 @@ server <- function(input, output, session) {
     replaceData(dataTableProxy, inventory_data(), resetPaging = FALSE)
   })
   
-  output$barPlot <- renderPlotly({
+output$barPlot <- renderPlotly({
     data <- inventory_data() %>%
       group_by(Combined_Section) %>%
       summarise(Total_Quantity = sum(Quantity, na.rm = TRUE))
+    
     plot_ly(data, x = ~Combined_Section, y = ~Total_Quantity, type = 'bar') %>%
-      layout(title = 'Total Quantity of Items by Section')
+      layout(
+        title = 'Total Quantity of Items by Section',
+        xaxis = list(title = 'Combined Section'),
+        yaxis = list(title = 'Total Quantity')
+      )
   })
+
   
   output$admin_status <- reactive({
     admin_status()

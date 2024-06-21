@@ -49,8 +49,11 @@ ui <- fluidPage(
       textInput("item_comment", "Comment:", ""),
       selectInput("item_section", "Section:", choices = NULL),
       actionButton("add_item", "Add Item"),
-      passwordInput("admin_password", "Admin Password:"),
-      actionButton("admin_login", "Admin Login"),
+      conditionalPanel(
+        condition = "!output.admin_status",
+        passwordInput("admin_password", "Admin Password:"),
+        actionButton("admin_login", "Admin Login")
+      ),
       downloadButton("downloadData", "Download CSV")
     ),
     mainPanel(
@@ -68,6 +71,10 @@ ui <- fluidPage(
 
 
 server <- function(input, output, session) {
+  
+  # Securely stored hashed password (pre-hashed using sodium::password_store)
+  hashed_password <- "$7$C6..../....LbSHcf7gGddIJ8ePwquEtXywH3rAGBhs3O9I/NWz60/$SFFJkNa1XLPXFYqEXqOADzRLb9huyw/KlRO5Fc7KjY8"
+  
   inventory_data <- reactiveVal()
   
   observe({
@@ -81,12 +88,19 @@ server <- function(input, output, session) {
   admin_status <- reactiveVal(FALSE)
   
   observeEvent(input$admin_login, {
-    # Placeholder for real hashed password check
-    admin_status(TRUE)
+    if (sodium::password_verify(hashed_password, input$admin_password)) {
+      admin_status(TRUE)
+      showNotification("Logged in as admin.", type = "message")
+    } else {
+      showNotification("Incorrect password.", type = "error")
+    }
   })
   
   observeEvent(input$add_item, {
-    if (!admin_status()) return()
+    if (!admin_status()) {
+      showNotification("Error: You do not have admin rights to add items.", type = "error")
+      return()
+    }    
     
     new_item <- tibble(
       Item = input$item_name,
@@ -202,6 +216,11 @@ server <- function(input, output, session) {
     plot_ly(data, x = ~Combined_Section, y = ~Total_Quantity, type = 'bar') %>%
       layout(title = 'Total Quantity of Items by Section')
   })
+  
+  output$admin_status <- reactive({
+    admin_status()
+  })
+  outputOptions(output, 'admin_status', suspendWhenHidden = FALSE)
   
   output$downloadData <- downloadHandler(
     filename = function() {

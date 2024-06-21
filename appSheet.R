@@ -60,8 +60,14 @@ ui <- fluidPage(
       plotlyOutput("barPlot"),
       tags$style(HTML("
         .dataTables_wrapper {
-          width: 100%;
+          width: 100% !important;
           height: 100%;
+        }
+        .dataTables_scrollBody {
+          width: 100% !important;
+        }
+        table.dataTable {
+          width: 100% !important;
         }
       ")),
       DTOutput("dataTable")
@@ -142,7 +148,7 @@ server <- function(input, output, session) {
       escape = FALSE,
       options = list(
         pageLength = 10,
-        autoWidth = TRUE,
+        autoWidth = FALSE,
         stateSave = TRUE,
         scrollX = TRUE,
         scrollY = 'calc(100vh - 250px)',
@@ -153,7 +159,6 @@ server <- function(input, output, session) {
       )
     )
   }, server = TRUE)
-  
   
   dataTableProxy <- dataTableProxy('dataTable')
   

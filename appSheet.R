@@ -18,7 +18,15 @@ read_inventory <- function() {
   inventory <- read_sheet(sheet_id, sheet = sheet_name) %>%
     mutate(Combined_Section = case_when(
       Section %in% c("Laptops", "Laptop Chargers", "Laptop Batteries", "Laptop Accessories") ~ "Laptops & Accessories",
-      # Add other sections accordingly
+      Section %in% c("Tablets", "Tablet Chargers", "Tablet Cases and Accessories") ~ "Tablets & Accessories",
+      Section %in% c("Phones", "Phone Cases") ~ "Phones & Accessories",
+      Section %in% c("Networking Equipment", "Access Points") ~ "Networking Equipment",
+      Section %in% c("Storage Devices") ~ "Storage Devices",
+      Section %in% c("Printers and Scanners") ~ "Printers & Scanners",
+      Section %in% c("Audio and Video Equipment") ~ "Audio & Video Equipment",
+      Section %in% c("Cables and Adapters") ~ "Cables & Adapters",
+      Section %in% c("Computer Peripherals", "Monitors", "TVs") ~ "Peripherals & Displays",
+      Section %in% c("Miscellaneous Tech", "Other Accessories") ~ "Miscellaneous & Accessories",
       TRUE ~ Section
     )) %>%
     mutate(RowID = row_number())  # This is for internal use
@@ -77,22 +85,105 @@ server <- function(input, output, session) {
       Item = input$item_name,
       Quantity = input$item_quantity,
       Comments = input$item_comment,
-      Section = input$item_section
+      Section = input$item_section,
+      Combined_Section = case_when(
+        input$item_section %in% c("Laptops", "Laptop Chargers", "Laptop Batteries", "Laptop Accessories") ~ "Laptops & Accessories",
+        input$item_section %in% c("Tablets", "Tablet Chargers", "Tablet Cases and Accessories") ~ "Tablets & Accessories",
+        input$item_section %in% c("Phones", "Phone Cases") ~ "Phones & Accessories",
+        input$item_section %in% c("Networking Equipment", "Access Points") ~ "Networking Equipment",
+        input$item_section %in% c("Storage Devices") ~ "Storage Devices",
+        input$item_section %in% c("Printers and Scanners") ~ "Printers & Scanners",
+        input$item_section %in% c("Audio and Video Equipment") ~ "Audio & Video Equipment",
+        input$item_section %in% c("Cables and Adapters") ~ "Cables & Adapters",
+        input$item_section %in% c("Computer Peripherals", "Monitors", "TVs") ~ "Peripherals & Displays",
+        input$item_section %in% c("Miscellaneous Tech", "Other Accessories") ~ "Miscellaneous & Accessories",
+        TRUE ~ input$item_section
+      ),
+      RowID = max(inventory_data()$RowID, na.rm = TRUE) + 1
     )
-    # Update inventory
-    updated_inventory <- bind_rows(inventory_data(), new_item)
+    
+    updated_inventory <- bind_rows(inventory_data(), new_item) %>%
+      group_by(Item, Comments) %>%
+      summarise(Quantity = sum(Quantity, na.rm = TRUE), Section = first(Section), Combined_Section = first(Combined_Section), RowID = first(RowID), .groups = 'drop')
+    
     inventory_data(updated_inventory)
     write_inventory(updated_inventory)
   })
   
   output$dataTable <- renderDT({
-    datatable(inventory_data(), escape = FALSE, selection = 'none', options = list(
-      dom = 'Bfrtip',
-      buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-      paging = TRUE,
-      searching = TRUE
-    ))
+    datatable(
+      inventory_data() %>%
+        mutate(Quantity = sprintf(
+          '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
+          Quantity, RowID, RowID
+        )) %>%
+        select(-RowID),
+      escape = FALSE,
+      options = list(
+        pageLength = 10,
+        autoWidth = TRUE,
+        stateSave = TRUE,
+        columnDefs = list(
+          list(width = '150px', targets = 3), 
+          list(className = 'dt-center', targets = "_all")
+        )
+      )
+    )
   }, server = TRUE)
+  
+  dataTableProxy <- dataTableProxy('dataTable')
+  
+  observe({
+    shinyjs::runjs("
+    $(document).on('click', 'button[id^=plus_]', function() {
+      var id = $(this).attr('id'); 
+      Shiny.setInputValue('plus_button', id, {priority: 'event'});
+    });
+    
+    $(document).on('click', 'button[id^=minus_]', function() {
+      var id = $(this).attr('id');
+      Shiny.setInputValue('minus_button', id, {priority: 'event'});
+    });
+  ")
+  })
+  
+  observeEvent(input$plus_button, {
+    if (!admin_status()) {
+      showNotification("Error: You do not have admin rights to modify items.", type = "error")
+      return()
+    }    
+    plus_index <- as.numeric(sub("plus_", "", input$plus_button))
+    updated_inventory <- isolate(inventory_data())
+    
+    target_row <- which(updated_inventory$RowID == plus_index)
+    updated_inventory$Quantity[target_row] <- updated_inventory$Quantity[target_row] + 1    
+    
+    inventory_data(updated_inventory)
+    write_inventory(updated_inventory)
+    
+    replaceData(dataTableProxy, inventory_data(), resetPaging = FALSE)
+  })
+  
+  observeEvent(input$minus_button, {
+    if (!admin_status()) {
+      showNotification("Error: You do not have admin rights to modify items.", type = "error")
+      return()
+    }    
+    minus_index <- as.numeric(sub("minus_", "", input$minus_button))
+    updated_inventory <- isolate(inventory_data())
+    
+    target_row <- which(updated_inventory$RowID == minus_index)
+    updated_inventory$Quantity[target_row] <- updated_inventory$Quantity[target_row] - 1
+    
+    if (updated_inventory$Quantity[target_row] <= 0) {
+      updated_inventory <- updated_inventory[-target_row, ]
+    }
+    
+    inventory_data(updated_inventory)
+    write_inventory(updated_inventory)
+    
+    replaceData(dataTableProxy, inventory_data(), resetPaging = FALSE)
+  })
   
   output$barPlot <- renderPlotly({
     data <- inventory_data() %>%

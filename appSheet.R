@@ -11,7 +11,7 @@ gs4_auth(path = "confidential/hhinventory_service_account_credentials.json")
 
 # Google Sheet settings
 sheet_id <- "1hFROHxAvUrZKADr1H7fY2RGWH4I0LeXKCoqux7tObqw"
-sheet_name <- "ServerSandbox"
+sheet_name <- "testcompat"
 
 # Read and prepare inventory data
 read_inventory <- function() {

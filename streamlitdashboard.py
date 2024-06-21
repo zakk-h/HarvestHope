@@ -56,6 +56,8 @@ if st.session_state['authenticated']:
     # Processing Data
     @st.cache_data(show_spinner=False)
     def process_data(data):
+        if 'RowID' in data.columns: # Only used by Shiny app
+            data = data.drop(columns=['RowID'])
         if 'Total Charges' in data.columns:
             data['Total Charges'] = pd.to_numeric(data['Total Charges'].replace('[\$,]', '', regex=True), errors='coerce')
             data['Annual Charges'] = data['Total Charges'] * 12
@@ -67,7 +69,7 @@ if st.session_state['authenticated']:
 
     # Load and process data on first time
     if 'data_server' not in st.session_state:
-        st.session_state.data_server = process_data(load_data('ServerSandbox'))
+        st.session_state.data_server = process_data(load_data('testcompat'))
 
     if 'data_phone' not in st.session_state:
         st.session_state.data_phone = process_data(load_data('PhoneSandbox'))
@@ -96,10 +98,10 @@ if st.session_state['authenticated']:
     col3.metric("Total Storage Value", f"${storage_value:,.2f}")
 
     # Bar Chart: Inventory Value by Category
-    fig_server_value = px.bar(data_server.groupby('Section')['Total Value'].sum().reset_index(),
-                            x='Section', y='Total Value', title="Storage Value by Category",
+    fig_server_value = px.bar(data_server.groupby('Combined_Section')['Total Value'].sum().reset_index(),
+                            x='Combined_Section', y='Total Value', title="Storage Value by Category",
                             labels={'Total Value': 'Total Value ($)', 'Section': 'Category'},
-                            color='Section')
+                            color='Combined_Section')
     st.plotly_chart(fig_server_value)
 
     # Bar Chart: Annual Phone Charges by Location
@@ -112,7 +114,7 @@ if st.session_state['authenticated']:
     # Pie Charts
     st.subheader("Inventory and Subscription Distribution")
 
-    fig_inventory_pie = px.pie(data_server, values='Total Value', names='Section',
+    fig_inventory_pie = px.pie(data_server, values='Total Value', names='Combined_Section',
                             title="Storage Distribution by Category")
     st.plotly_chart(fig_inventory_pie)
 
@@ -138,10 +140,14 @@ if st.session_state['authenticated']:
     st.download_button(label="Download Phone Data as CSV", data=phone_csv, file_name='phone_data.csv', mime='text/csv')
 
     st.write("Server Equipment Data")
-    grid_options = GridOptionsBuilder.from_dataframe(data_server).build()
-    AgGrid(data_server, gridOptions=grid_options)
+    # Combined Section isn't worth displaying in the data table - drop it after it has been used in visualization
+    data_server_display = data_server.copy() # New object
+    if 'Combined_Section' in data_server_display.columns:
+        data_server_display = data_server_display.drop(columns=['Combined_Section'])    
+    grid_options = GridOptionsBuilder.from_dataframe(data_server_display).build()
+    AgGrid(data_server_display, gridOptions=grid_options)
 
-    server_csv = data_server.to_csv(index=False).encode('utf-8')
+    server_csv = data_server.to_csv(index=False).encode('utf-8') # They can download with combined section here because they might as well have everything - it just hurts the user interface to include it in the app table
     st.download_button(label="Download Server Data as CSV", data=server_csv, file_name='server_data.csv', mime='text/csv')
 
     # Filtering Options

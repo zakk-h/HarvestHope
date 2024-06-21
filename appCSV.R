@@ -6,8 +6,12 @@ library(plotly)
 library(DT)
 library(shinyjs)
 library(sodium)
+library(jsonlite)
 
 inventory <- read_csv("TechInventory.csv")
+
+# Password hashes to check against for authentication
+hashes <- fromJSON("confidential/shinypasswords.json")
 
 inventory_combined <- inventory %>%
   mutate(Combined_Section = case_when(
@@ -61,7 +65,8 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   # Securely stored hashed password (pre-hashed using sodium::password_store)
-  hashed_password <- "$7$C6..../....LbSHcf7gGddIJ8ePwquEtXywH3rAGBhs3O9I/NWz60/$SFFJkNa1XLPXFYqEXqOADzRLb9huyw/KlRO5Fc7KjY8"
+  hashed_password1 <- hashes$admin_passwords$hash1
+  hashed_password2 <- hashes$admin_passwords$hash2
   
   # Only run the first initial time, inventory_combined doesn't change
   inventory_data <- reactiveVal(inventory_combined)
@@ -71,7 +76,7 @@ server <- function(input, output, session) {
   
   # Authenticate admin by comparing created hash
   observeEvent(input$admin_login, {
-    if (sodium::password_verify(hashed_password, input$admin_password)) {
+    if (sodium::password_verify(hashed_password1, input$admin_password) | sodium::password_verify(hashed_password2, input$admin_password)) {
       admin_status(TRUE)
       showNotification("Logged in as admin.", type = "message")
     } else {

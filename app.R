@@ -6,6 +6,7 @@ library(DT)
 library(shinyjs)
 library(googlesheets4)
 library(sodium)
+library(jsonlite)
 
 # Authentication and setup
 gs4_auth(path = "confidential/hhinventory_service_account_credentials.json")
@@ -13,6 +14,9 @@ gs4_auth(path = "confidential/hhinventory_service_account_credentials.json")
 # Google Sheet settings
 sheet_id <- "1hFROHxAvUrZKADr1H7fY2RGWH4I0LeXKCoqux7tObqw"
 sheet_name <- "testcompat"
+
+# Password hashes to check against for authentication
+hashes <- fromJSON("confidential/shinypasswords.json")
 
 # Read and prepare inventory data
 read_inventory <- function() {
@@ -79,10 +83,9 @@ ui <- fluidPage(
 
 
 server <- function(input, output, session) {
-  
   # Securely stored hashed password (pre-hashed using sodium::password_store)
-  hashed_password <- "$7$C6..../....LbSHcf7gGddIJ8ePwquEtXywH3rAGBhs3O9I/NWz60/$SFFJkNa1XLPXFYqEXqOADzRLb9huyw/KlRO5Fc7KjY8"
-  hashed_password2 <- "$7$C6..../....QU2sOUMM2vmJPCZNeVS4Ati3MNamWb7waBp110ecKJ4$wBJaXPqeXSwSBrUy5gYtkqi9I3pURbFjVfFT9zTxxj."
+  hashed_password1 <- hashes$admin_passwords$hash1
+  hashed_password2 <- hashes$admin_passwords$hash2
   inventory_data <- reactiveVal()
   
   observe({
@@ -96,7 +99,7 @@ server <- function(input, output, session) {
   admin_status <- reactiveVal(FALSE)
   
   observeEvent(input$admin_login, {
-    if (sodium::password_verify(hashed_password, input$admin_password) | sodium::password_verify(hashed_password2, input$admin_password)) {
+    if (sodium::password_verify(hashed_password1, input$admin_password) | sodium::password_verify(hashed_password2, input$admin_password)) {
       admin_status(TRUE)
       showNotification("Logged in as admin.", type = "message")
     } else {

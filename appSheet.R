@@ -58,9 +58,10 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotlyOutput("barPlot"),
+      # override any other CSS that interferes with the width, etc with !important
       tags$style(HTML("
         .dataTables_wrapper {
-          width: 100% !important;
+          width: 100% !important; 
           height: 100%;
         }
         .dataTables_scrollBody {
@@ -84,7 +85,7 @@ server <- function(input, output, session) {
   inventory_data <- reactiveVal()
   
   observe({
-    invalidateLater(30000, session)  # Refresh data every 30 seconds
+    invalidateLater(30000, session)  # Refresh data every 30 seconds to keep it fresh from concurrent modifications
     inventory <- read_inventory()
     inventory_data(inventory)
     updateCheckboxGroupInput(session, "sections", choices = unique(inventory$Combined_Section), selected = unique(inventory$Combined_Section))
@@ -108,6 +109,8 @@ server <- function(input, output, session) {
       return()
     }    
     
+    current_inventory <- read_inventory()
+    
     new_item <- tibble(
       Item = input$item_name,
       Quantity = input$item_quantity,
@@ -126,10 +129,10 @@ server <- function(input, output, session) {
         input$item_section %in% c("Miscellaneous Tech", "Other Accessories") ~ "Miscellaneous & Accessories",
         TRUE ~ input$item_section
       ),
-      RowID = max(inventory_data()$RowID, na.rm = TRUE) + 1
+      RowID = max(current_inventory$RowID, na.rm = TRUE) + 1
     )
     
-    updated_inventory <- bind_rows(inventory_data(), new_item) %>%
+    updated_inventory <- bind_rows(current_inventory, new_item) %>%
       group_by(Item, Comments) %>%
       summarise(Quantity = sum(Quantity, na.rm = TRUE), Section = first(Section), Combined_Section = first(Combined_Section), RowID = first(RowID), .groups = 'drop')
     
@@ -182,7 +185,7 @@ server <- function(input, output, session) {
       return()
     }    
     plus_index <- as.numeric(sub("plus_", "", input$plus_button))
-    updated_inventory <- isolate(inventory_data())
+    updated_inventory <- read_inventory()
     
     target_row <- which(updated_inventory$RowID == plus_index)
     updated_inventory$Quantity[target_row] <- updated_inventory$Quantity[target_row] + 1    
@@ -199,7 +202,7 @@ server <- function(input, output, session) {
       return()
     }    
     minus_index <- as.numeric(sub("minus_", "", input$minus_button))
-    updated_inventory <- isolate(inventory_data())
+    updated_inventory <- read_inventory()
     
     target_row <- which(updated_inventory$RowID == minus_index)
     updated_inventory$Quantity[target_row] <- updated_inventory$Quantity[target_row] - 1

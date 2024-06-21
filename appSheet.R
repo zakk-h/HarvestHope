@@ -29,7 +29,7 @@ read_inventory <- function() {
       Section %in% c("Miscellaneous Tech", "Other Accessories") ~ "Miscellaneous & Accessories",
       TRUE ~ Section
     )) %>%
-    mutate(RowID = row_number())  # This is for internal use
+    mutate(RowID = row_number())  # For internal use only; not displayed
   return(inventory)
 }
 
@@ -55,10 +55,17 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotlyOutput("barPlot"),
+      tags$style(HTML("
+        .dataTables_wrapper {
+          width: 100%;
+          height: 100%;
+        }
+      ")),
       DTOutput("dataTable")
     )
   )
 )
+
 
 server <- function(input, output, session) {
   inventory_data <- reactiveVal()
@@ -117,12 +124,14 @@ server <- function(input, output, session) {
           '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
           Quantity, RowID, RowID
         )) %>%
-        select(-RowID),
+        select(-RowID, -Combined_Section),
       escape = FALSE,
       options = list(
         pageLength = 10,
         autoWidth = TRUE,
         stateSave = TRUE,
+        scrollX = TRUE,
+        scrollY = 'calc(100vh - 250px)',
         columnDefs = list(
           list(width = '150px', targets = 3), 
           list(className = 'dt-center', targets = "_all")
@@ -130,6 +139,7 @@ server <- function(input, output, session) {
       )
     )
   }, server = TRUE)
+  
   
   dataTableProxy <- dataTableProxy('dataTable')
   

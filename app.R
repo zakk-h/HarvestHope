@@ -142,6 +142,8 @@ server <- function(input, output, session) {
     
     inventory_data(updated_inventory)
     write_inventory(updated_inventory)
+    
+    replaceData(dataTableProxy, updated_inventory, resetPaging = FALSE)
   })
   
   output$dataTable <- renderDT({
@@ -156,7 +158,7 @@ server <- function(input, output, session) {
       options = list(
         pageLength = 10,
         autoWidth = FALSE,
-        stateSave = FALSE,
+        stateSave = TRUE,
         scrollX = TRUE,
         scrollY = 'calc(100vh - 250px)',
         columnDefs = list(
@@ -197,7 +199,7 @@ server <- function(input, output, session) {
     inventory_data(updated_inventory)
     write_inventory(updated_inventory)
     
-    replaceData(dataTableProxy, inventory_data(), resetPaging = FALSE)
+    replaceData(dataTableProxy, updated_inventory, resetPaging = FALSE)
   })
   
   observeEvent(input$minus_button, {
@@ -218,7 +220,7 @@ server <- function(input, output, session) {
     inventory_data(updated_inventory)
     write_inventory(updated_inventory)
     
-    replaceData(dataTableProxy, inventory_data(), resetPaging = FALSE)
+    replaceData(dataTableProxy, updated_inventory, resetPaging = FALSE)
   })
   
 output$barPlot <- renderPlotly({

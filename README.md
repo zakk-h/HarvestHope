@@ -14,6 +14,7 @@ You can access the live app [here](https://hhequipment.streamlit.app).
 
 ### Shiny App
 This Shiny application was developed to manage and visualize inventory data for Harvest Hope. The primary purpose of the application is to provide an interactive and user-friendly interface for viewing, editing, and updating inventory records, all directly connected to a Google Sheet. 
+
 You can access the live app <a href="https://zakk-h.shinyapps.io/harvesthope" target="_blank">here</a>.
 
 # Asset Management Streamlit App Documentation
@@ -47,7 +48,8 @@ pip install -r requirements.txt
 ```
 
 ### Configuration
-First, ensure you have a Google Cloud Platform (GCP) project and have created a service account with permissions to access Google Sheets. 
+First, ensure you have a Google Cloud Platform (GCP) project and have created a service account with permissions to access Google Sheets. For instructions, see the [Service Account Setup Guide](service_account_help.md).
+
 The app uses SHA-256 hashes for password verification to manage user access levels. 
 
 Create a `.streamlit/secrets.toml` file to store your Google Sheets API credentials and valid, pre-defined SHA-256 password hashes and replace the placeholders below:
@@ -74,6 +76,27 @@ low_level = "your_low_level_sha256_hash"
 high_level = "your_high_level_sha256_hash"
 ```
 
+#### Generating Password Hashes in Python
+
+You can generate SHA-256 password hashes using Python. Here's a simple script to hash your passwords:
+
+```python
+import hashlib
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+password1 = "your_first_password"
+password2 = "your_second_password"
+
+hashed_password1 = hash_password(password1)
+hashed_password2 = hash_password(password2)
+
+print(f"Hashed Password 1: {hashed_password1}")
+print(f"Hashed Password 2: {hashed_password2}")
+```
+
+
 ### Running the App
 Run the application using the following command:
 ```bash
@@ -84,6 +107,7 @@ streamlit run streamlitdashboard.py
 
 ## Overview
 This Shiny application was developed to manage and visualize inventory data for Harvest Hope, a non-profit organization. The primary purpose of the application is to provide an interactive and user-friendly interface for viewing, editing, and updating inventory records through a behind-the-scenes spreadsheet. Whether in the office or out in the field surveying inventory, users can easily modify item quantities with intuitive plus and minus buttons or add new items on the go. They don't need to worry about adding a new line item for a model that already exists - the app will catch it and collapse them.
+
 You can access the live app <a href="https://zakk-h.shinyapps.io/harvesthope" target="_blank">here</a>.
 
 <a href="https://zakk-h.shinyapps.io/harvesthope" target="_blank">
@@ -113,7 +137,7 @@ To set up the Shiny app, you need to configure the service account integration w
 
 ### Google Sheets Integration
 
-Fill out the `confidential/hhinventory_service_account_credentials.json` file with your Google service account credentials. Below is a template of what the file should look like:
+Fill out the `confidential/hhinventory_service_account_credentials.json` file with your Google service account credentials. For instructions, see the [Service Account Setup Guide](service_account_help.md). Below is a template of what the file should look like:
 
 ```json
 {
@@ -129,6 +153,8 @@ Fill out the `confidential/hhinventory_service_account_credentials.json` file wi
   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your_service_account_email@your_project_id.iam.gserviceaccount.com"
 }
 ```
+
+
 ### Authentication Setup
 
 Store your SHA-256 password hashes in the `confidential/shinypasswords.json` file. Below is a template of what the file should look like:
@@ -142,26 +168,25 @@ Store your SHA-256 password hashes in the `confidential/shinypasswords.json` fil
 }
 ```
 
-#### Generating Password Hashes in Python
+#### Hashing Passwords
+Use the following R script to hash your passwords:
+```r
+library(sodium)
 
-You can generate SHA-256 password hashes using Python. Here's a simple script to hash your passwords:
+hash_password <- function(password) {
+  hashed <- sodium::password_store(password)
+  return(hashed)
+}
 
-```python
-import hashlib
+password1 <- "your_first_password"
+password2 <- "your_second_password"
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+hashed_password1 <- hash_password(password1)
+hashed_password2 <- hash_password(password2)
 
-password1 = "your_first_password"
-password2 = "your_second_password"
-
-hashed_password1 = hash_password(password1)
-hashed_password2 = hash_password(password2)
-
-print(f"Hashed Password 1: {hashed_password1}")
-print(f"Hashed Password 2: {hashed_password2}")
+cat("Hashed Password 1:", hashed_password1, "\n")
+cat("Hashed Password 2:", hashed_password2, "\n")
 ```
-
 
 ## Running the App
 Open the app.R file in RStudio.

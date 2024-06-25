@@ -63,8 +63,10 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotlyOutput("barPlot"),
-      actionButton("show_quantity", "Show Quantity", class = "btn-primary"),
-      actionButton("show_price", "Show Total Price", class = "btn-info"),
+      div(style = "text-align: center; margin-top: 5px;",
+          actionLink("show_quantity", label = "", icon = icon("circle"), class = "plot-nav-button", style = "color: blue; cursor: pointer;"),
+          actionLink("show_price", label = "", icon = icon("circle"), class = "plot-nav-button", style = "color: gray; cursor: pointer;")
+      ),
       DTOutput("dataTable"),
       tags$style(HTML("
         .dataTables_wrapper {
@@ -77,16 +79,15 @@ ui <- fluidPage(
         table.dataTable {
           width: 100% !important;
         }
-        .btn-primary, .btn-info {
-          width: 49%; 
-          margin: 5px 1% 20px 1%;
+        .plot-nav-button {
+          font-size: 8px; 
+          padding: 0 5px; 
+          vertical-align: middle;
         }
       "))
     )
   )
 )
-
-
 
 server <- function(input, output, session) {
   # Securely stored hashed password (pre-hashed using sodium::password_store)

@@ -64,8 +64,8 @@ ui <- fluidPage(
     mainPanel(
       plotlyOutput("barPlot"),
       div(style = "text-align: center; margin-top: 5px;",
-          actionLink("show_quantity", label = "", icon = icon("circle"), class = "plot-nav-button", style = "color: blue; cursor: pointer;"),
-          actionLink("show_price", label = "", icon = icon("circle"), class = "plot-nav-button", style = "color: gray; cursor: pointer;")
+          actionLink("show_quantity", label = "", icon = icon("circle"), class = "plot-nav-button blue"),
+          actionLink("show_price", label = "", icon = icon("circle"), class = "plot-nav-button gray")
       ),
       DTOutput("dataTable"),
       tags$style(HTML("
@@ -80,9 +80,17 @@ ui <- fluidPage(
           width: 100% !important;
         }
         .plot-nav-button {
-          font-size: 8px; 
+          font-size: 10px;  
+          font-weight: bold;
           padding: 0 5px; 
           vertical-align: middle;
+          text-decoration: none !important;
+        }
+        .plot-nav-button.blue {
+          color: #007BFF;  
+        }
+        .plot-nav-button.gray {
+          color: #6c757d; 
         }
       "))
     )
@@ -234,10 +242,18 @@ server <- function(input, output, session) {
   
   observeEvent(input$show_quantity, {
     plot_type("quantity")
+    shinyjs::removeClass(selector = "#show_price", class = "blue")
+    shinyjs::addClass(selector = "#show_price", class = "gray")
+    shinyjs::removeClass(selector = "#show_quantity", class = "gray")
+    shinyjs::addClass(selector = "#show_quantity", class = "blue")
   })
   
   observeEvent(input$show_price, {
     plot_type("price")
+    shinyjs::removeClass(selector = "#show_quantity", class = "blue")
+    shinyjs::addClass(selector = "#show_quantity", class = "gray")
+    shinyjs::removeClass(selector = "#show_price", class = "gray")
+    shinyjs::addClass(selector = "#show_price", class = "blue")
   })
   
   output$barPlot <- renderPlotly({

@@ -212,6 +212,11 @@ server <- function(input, output, session) {
       RowID = max(current_inventory$RowID, na.rm = TRUE) + 1 # The next row id; this itself doesn't mean it goes last, it just gives a unique identifier. There will never be a gap because the row id assigned to the imported data is the row number from the sheet which is assumed to be continuous.
     )
     
+    estimated_price_exists <- "Estimated Price" %in% names(current_inventory)
+    if (estimated_price_exists) {
+      new_item$`Estimated Price` <- 777  # Default value if column exists
+    }
+    
     # Binding new_item as the row following the end of current_inventory
     # Could swap parameters to make new_item be added to the front/top
     updated_inventory <- bind_rows(current_inventory, new_item) %>%
@@ -220,6 +225,7 @@ server <- function(input, output, session) {
         Quantity = sum(Quantity, na.rm = TRUE),
         Section = first(Section),
         Combined_Section = first(Combined_Section),
+        `Estimated Price` = first(`Estimated Price`),
         RowID = first(RowID),
         .groups = 'drop'
       )

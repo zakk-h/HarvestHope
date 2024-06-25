@@ -63,7 +63,9 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotlyOutput("barPlot"),
-      # override any other CSS that interferes with the width, etc with !important
+      actionButton("show_quantity", "Show Quantity", class = "btn-primary"),
+      actionButton("show_price", "Show Total Price", class = "btn-info"),
+      DTOutput("dataTable"),
       tags$style(HTML("
         .dataTables_wrapper {
           width: 100% !important; 
@@ -75,11 +77,15 @@ ui <- fluidPage(
         table.dataTable {
           width: 100% !important;
         }
-      ")),
-      DTOutput("dataTable")
+        .btn-primary, .btn-info {
+          width: 49%; 
+          margin: 5px 1% 20px 1%;
+        }
+      "))
     )
   )
 )
+
 
 
 server <- function(input, output, session) {
@@ -113,7 +119,7 @@ server <- function(input, output, session) {
       return()
     }    
     
-    current_inventory <- read_inventory()
+    current_inventory <- read_inventory() #default
     
     new_item <- tibble(
       Item = input$item_name,
@@ -223,19 +229,41 @@ server <- function(input, output, session) {
     replaceData(dataTableProxy, updated_inventory, resetPaging = FALSE)
   })
   
-output$barPlot <- renderPlotly({
-    data <- inventory_data() %>%
-      group_by(Combined_Section) %>%
-      summarise(Total_Quantity = sum(Quantity, na.rm = TRUE))
-    
-    plot_ly(data, x = ~Combined_Section, y = ~Total_Quantity, type = 'bar') %>%
-      layout(
-        title = 'Total Quantity of Items by Section',
-        xaxis = list(title = 'Combined Section'),
-        yaxis = list(title = 'Total Quantity')
-      )
+  plot_type <- reactiveVal("quantity")  #default
+  
+  observeEvent(input$show_quantity, {
+    plot_type("quantity")
   })
-
+  
+  observeEvent(input$show_price, {
+    plot_type("price")
+  })
+  
+  output$barPlot <- renderPlotly({
+    data <- inventory_data()
+    if (plot_type() == "quantity") {
+      data_summarized <- data %>%
+        group_by(Combined_Section) %>%
+        summarise(Total_Quantity = sum(Quantity, na.rm = TRUE))
+      plot_ly(data_summarized, x = ~Combined_Section, y = ~Total_Quantity, type = 'bar') %>%
+        layout(
+          title = 'Total Quantity of Items by Section',
+          xaxis = list(title = 'Combined Section'),
+          yaxis = list(title = 'Total Quantity')
+        )
+    } else {
+      data_summarized <- data %>%
+        group_by(Combined_Section) %>%
+        summarise(Total_Price = sum(Quantity * `Estimated Price`, na.rm = TRUE))
+      plot_ly(data_summarized, x = ~Combined_Section, y = ~Total_Price, type = 'bar', marker = list(color = 'rgb(50, 171, 96)')) %>%
+        layout(
+          title = 'Total Price of Items by Section',
+          xaxis = list(title = 'Combined Section'),
+          yaxis = list(title = 'Total Price', tickprefix = "$")
+        )
+    }
+  })
+  
   
   output$admin_status <- reactive({
     admin_status()

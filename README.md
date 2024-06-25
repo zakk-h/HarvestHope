@@ -207,8 +207,7 @@ shiny::runApp()
 - **State Resetting**: When updating the data table, the state (e.g., current page, search filters) resets. This can be inconvenient for users making multiple edits. Considerations for improvement include maintaining state between updates.
 
 ## Future Enhancements
-- Transitioning from CSV to Google Sheets or a database system for real-time updates, concurrent modification, and improved data consistency.
-- Adding features such as time-based notifications, change history, and the ability to update item sections.
+- Adding features such as time-based notifications, change history, and the ability to update item sections or item prices.
 
 # Scripts
 Additionally in the repository, there are several scripts included in the project that can perform the following tasks:

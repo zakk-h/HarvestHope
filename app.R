@@ -58,6 +58,7 @@ ui <- fluidPage(
       checkboxGroupInput("sections", "Select Sections:", choices = NULL),
       textInput("item_name", "Item:", ""),
       numericInput("item_quantity", "Quantity:", 1, min = 1),
+      numericInput("item_price", "Price:", value = NA, min = 0, step = 1),
       textInput("item_comment", "Comment:", ""),
       selectInput("item_section", "Section:", choices = NULL),
       actionButton("add_item", "Add Item"),
@@ -123,15 +124,20 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  # Securely stored hashed password (pre-hashed using sodium::password_store)
-  hashed_password1 <- hashes$admin_passwords$hash1
-  hashed_password2 <- hashes$admin_passwords$hash2
   
   inventory_data <- reactiveVal()
-
+  
   # Load inventory initially and store in reactive value
   initial_inventory <- read_inventory()
   inventory_data(initial_inventory)
+  
+  # Check if "Estimated Price" exists and adjust UI accordingly
+  if ("Estimated Price" %in% names(initial_inventory)) {
+    shinyjs::show("item_price")
+  } else {
+    shinyjs::hide("item_price")
+  }
+  
   
   # Define initial sections and selections based on the first data load
   sections <- unique(initial_inventory$Combined_Section)
@@ -150,6 +156,10 @@ server <- function(input, output, session) {
     "item_section",
     choices = unique(initial_inventory$Section)
   )
+  
+  # Securely stored hashed password (pre-hashed using sodium::password_store)
+  hashed_password1 <- hashes$admin_passwords$hash1
+  hashed_password2 <- hashes$admin_passwords$hash2
   
   observe({
     invalidateLater(30000, session)  # Refresh data every 30 seconds to keep it fresh from concurrent modifications
@@ -209,13 +219,9 @@ server <- function(input, output, session) {
         input$item_section %in% c("Miscellaneous Tech", "Other Accessories") ~ "Miscellaneous & Accessories",
         TRUE ~ input$item_section
       ),
+      `Estimated Price` = ifelse("Estimated Price" %in% names(current_inventory), input$item_price, NA),
       RowID = max(current_inventory$RowID, na.rm = TRUE) + 1 # The next row id; this itself doesn't mean it goes last, it just gives a unique identifier. There will never be a gap because the row id assigned to the imported data is the row number from the sheet which is assumed to be continuous.
     )
-    
-    estimated_price_exists <- "Estimated Price" %in% names(current_inventory)
-    if (estimated_price_exists) {
-      new_item$`Estimated Price` <- 777  # Default value if column exists
-    }
     
     # Binding new_item as the row following the end of current_inventory
     # Could swap parameters to make new_item be added to the front/top

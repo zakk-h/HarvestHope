@@ -134,8 +134,10 @@ server <- function(input, output, session) {
   # Check if "Estimated Price" exists and adjust UI accordingly
   if ("Estimated Price" %in% names(initial_inventory)) {
     shinyjs::show("item_price")
+    show_estimated_price = TRUE
   } else {
     shinyjs::hide("item_price")
+    show_estimated_price = FALSE
   }
   
   
@@ -235,6 +237,11 @@ server <- function(input, output, session) {
         RowID = first(RowID),
         .groups = 'drop'
       )
+    
+    # Removing estimated_price column if it wasn't there originally
+    if (!show_estimated_price) {
+      updated_inventory <- select(updated_inventory, -`Estimated Price`)
+    }
     
     inventory_data(updated_inventory) # Keeping reactive value updated
     write_inventory(updated_inventory) # Writing back to Google Sheet
@@ -380,24 +387,46 @@ server <- function(input, output, session) {
           yaxis = list(title = 'Total Quantity')
         )
     } else {
-      data_summarized <- filtered_data %>%
-        group_by(Combined_Section) %>%
-        summarise(Total_Price = sum(Quantity * `Estimated Price`, na.rm = TRUE))
-      plot_ly(
-        data_summarized,
-        x = ~ Combined_Section,
-        y = ~ Total_Price,
-        type = 'bar',
-        marker = list(color = 'rgb(50, 171, 96)')
-      ) %>%
-        layout(
-          title = 'Total Price of Items by Section',
-          xaxis = list(title = 'Combined Section'),
-          yaxis = list(title = 'Total Price', tickprefix = "$")
-        )
+      if (!"Estimated Price" %in% names(filtered_data)) {
+        # Return a plotly object with a message instead of a plot
+        plot_ly() %>%
+          add_annotations(
+            text = "The 'Estimated Price' data is not available.",
+            x = 0.5,
+            y = 0.5,
+            xref = 'paper',
+            yref = 'paper',
+            showarrow = FALSE,
+            font = list(
+              family = "Arial",
+              size = 16,
+              color = "red"
+            )
+          ) %>%
+          layout(
+            xaxis = list(showticklabels = FALSE),
+            yaxis = list(showticklabels = FALSE)
+          )
+      } else {
+        data_summarized <- filtered_data %>%
+          group_by(Combined_Section) %>%
+          summarise(Total_Price = sum(Quantity * `Estimated Price`, na.rm = TRUE))
+        plot_ly(
+          data_summarized,
+          x = ~ Combined_Section,
+          y = ~ Total_Price,
+          type = 'bar',
+          marker = list(color = 'rgb(50, 171, 96)')
+        ) %>%
+          layout(
+            title = 'Total Price of Items by Section',
+            xaxis = list(title = 'Combined Section'),
+            yaxis = list(title = 'Total Price', tickprefix = "$")
+          )
+      }
+      
     }
   })
-  
   
   output$admin_status <- reactive({
     admin_status()

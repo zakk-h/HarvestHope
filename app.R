@@ -131,16 +131,33 @@ server <- function(input, output, session) {
   
   observe({
     invalidateLater(30000, session)  # Refresh data every 30 seconds to keep it fresh from concurrent modifications
+    
     inventory <-
       read_inventory() # Adding, removing, etc all do not need this functionality - they pull the latest right before they write
     inventory_data(inventory) # This is mainly for extensive idle time
+    
+    # Determine unique combined sections from the updated inventory
+    sections <- unique(inventory$Combined_Section)
+    
+    # Initialize selections if they are null or on the first load
+    if (is.null(input$sections) || length(input$sections) == 0) {
+      selections <- sections  # All sections are selected if none are currently selected
+    } else {
+      # Retain the current selections if they are not null
+      selections <- input$sections
+    }
+    
+    # Update the checkbox group input with the latest sections and retain selections
     updateCheckboxGroupInput(
       session,
       "sections",
-      choices = unique(inventory$Combined_Section),
-      selected = unique(inventory$Combined_Section)
+      choices = sections,
+      selected = selections
     )
+    
+    # Update the dropdown for selecting item sections based on the entire inventory's sections
     updateSelectInput(session, "item_section", choices = unique(inventory$Section))
+    
     # Updating inventory_data will trigger the data table to update, etc.
   })
   

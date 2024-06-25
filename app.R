@@ -54,7 +54,7 @@ ui <- fluidPage(
       textInput("item_comment", "Comment:", ""),
       selectInput("item_section", "Section:", choices = NULL),
       actionButton("add_item", "Add Item"),
-      conditionalPanel(
+      conditionalPanel( # Goes away once authenticated
         condition = "!output.admin_status",
         passwordInput("admin_password", "Admin Password:"),
         actionButton("admin_login", "Admin Login")
@@ -62,12 +62,12 @@ ui <- fluidPage(
       downloadButton("downloadData", "Download CSV")
     ),
     mainPanel(
-      plotlyOutput("barPlot"),
+      plotlyOutput("barPlot"), # Navigation buttons between two plots
       div(style = "text-align: center; margin-top: 5px;",
           actionLink("show_quantity", label = "", icon = icon("circle"), class = "plot-nav-button blue"),
           actionLink("show_price", label = "", icon = icon("circle"), class = "plot-nav-button gray")
       ),
-      DTOutput("dataTable"),
+      DTOutput("dataTable"), # Data table must fill space horizontally
       tags$style(HTML("
         .dataTables_wrapper {
           width: 100% !important; 
@@ -84,7 +84,7 @@ ui <- fluidPage(
           font-weight: bold;
           padding: 0 5px; 
           vertical-align: middle;
-          text-decoration: none !important;
+          text-decoration: none !important; /* No underlining from hyperlinks */
         }
         .plot-nav-button.blue {
           color: #007BFF;  
@@ -109,13 +109,15 @@ server <- function(input, output, session) {
     inventory_data(inventory) # This is mainly for extensive idle time
     updateCheckboxGroupInput(session, "sections", choices = unique(inventory$Combined_Section), selected = unique(inventory$Combined_Section))
     updateSelectInput(session, "item_section", choices = unique(inventory$Section))
+    # Updating inventory_data will trigger the data table to update, etc. 
   })
   
-  admin_status <- reactiveVal(FALSE)
+  admin_status <- reactiveVal(FALSE) # Default reactive val, run only at startup
   
-  observeEvent(input$admin_login, {
+  observeEvent(input$admin_login, { # Action button trigger
+    # This implementation allows two passwords (with the same level of authentication: write access)
     if (sodium::password_verify(hashed_password1, input$admin_password) | sodium::password_verify(hashed_password2, input$admin_password)) {
-      admin_status(TRUE)
+      admin_status(TRUE) # Will hide password prompt now because of conditional UI
       showNotification("Logged in as admin.", type = "message")
     } else {
       showNotification("Incorrect password.", type = "error")
@@ -128,14 +130,14 @@ server <- function(input, output, session) {
       return()
     }    
     
-    current_inventory <- read_inventory() #default
+    current_inventory <- read_inventory() # Getting fresh data from the Google Sheet
     
     new_item <- tibble(
       Item = input$item_name,
       Quantity = input$item_quantity,
       Comments = input$item_comment,
       Section = input$item_section,
-      Combined_Section = case_when(
+      Combined_Section = case_when( # Combined Section for visualization
         input$item_section %in% c("Laptops", "Laptop Chargers", "Laptop Batteries", "Laptop Accessories") ~ "Laptops & Accessories",
         input$item_section %in% c("Tablets", "Tablet Chargers", "Tablet Cases and Accessories") ~ "Tablets & Accessories",
         input$item_section %in% c("Phones", "Phone Cases") ~ "Phones & Accessories",
@@ -148,44 +150,48 @@ server <- function(input, output, session) {
         input$item_section %in% c("Miscellaneous Tech", "Other Accessories") ~ "Miscellaneous & Accessories",
         TRUE ~ input$item_section
       ),
-      RowID = max(current_inventory$RowID, na.rm = TRUE) + 1
+      RowID = max(current_inventory$RowID, na.rm = TRUE) + 1 # The next row id; this itself doesn't mean it goes last, it just gives a unique identifier. There will never be a gap because the row id assigned to the imported data is the row number from the sheet which is assumed to be continuous. 
     )
     
+    # Binding new_item as the row following the end of current_inventory
+    # Could swap parameters to make new_item be added to the front/top
     updated_inventory <- bind_rows(current_inventory, new_item) %>%
       group_by(Item, Comments) %>%
       summarise(Quantity = sum(Quantity, na.rm = TRUE), Section = first(Section), Combined_Section = first(Combined_Section), RowID = first(RowID), .groups = 'drop')
     
-    inventory_data(updated_inventory)
-    write_inventory(updated_inventory)
+    inventory_data(updated_inventory) # Keeping reactive value updated
+    write_inventory(updated_inventory) # Writing back to Google Sheet
     
-    replaceData(dataTableProxy, updated_inventory, resetPaging = FALSE)
+    replaceData(dataTableProxy, updated_inventory, resetPaging = FALSE) # Updating what is displayed in the data table
   })
   
+  # Initial rendering of the data table
   output$dataTable <- renderDT({
     datatable(
       inventory_data() %>%
-        mutate(Quantity = sprintf(
+        mutate(Quantity = sprintf( # Quantity column to include the quantity and buttons
           '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
           Quantity, RowID, RowID
         )) %>%
-        select(-RowID, -Combined_Section),
+        select(-RowID, -Combined_Section), # Not worth displaying
       escape = FALSE,
       options = list(
         pageLength = 10,
         autoWidth = FALSE,
-        stateSave = TRUE,
+        stateSave = TRUE, # Not working reliably
         scrollX = TRUE,
         scrollY = 'calc(100vh - 250px)',
         columnDefs = list(
-          list(width = '150px', targets = 3), 
-          list(className = 'dt-center', targets = "_all")
+          list(width = '150px', targets = 3), # Setting width of 4th column (index 3) - the column with buttons
+          list(className = 'dt-center', targets = "_all") # Centers text
         )
       )
     )
-  }, server = TRUE)
+  }, server = TRUE) # Server side processing
   
   dataTableProxy <- dataTableProxy('dataTable')
   
+  # jQuery listens for clicks for buttons that start with plus_ or minus_ and sets input value accordingly so it can be observed and handled at the correct row
   observe({
     shinyjs::runjs("
     $(document).on('click', 'button[id^=plus_]', function() {
@@ -200,14 +206,17 @@ server <- function(input, output, session) {
   ")
   })
   
+  # input detected from the above js.
   observeEvent(input$plus_button, {
     if (!admin_status()) {
       showNotification("Error: You do not have admin rights to modify items.", type = "error")
       return()
     }    
+    # extract row number
     plus_index <- as.numeric(sub("plus_", "", input$plus_button))
     updated_inventory <- read_inventory()
     
+    # find target row
     target_row <- which(updated_inventory$RowID == plus_index)
     updated_inventory$Quantity[target_row] <- updated_inventory$Quantity[target_row] + 1    
     
@@ -241,7 +250,10 @@ server <- function(input, output, session) {
   plot_type <- reactiveVal("quantity")  #default
   
   observeEvent(input$show_quantity, {
+    # Updating reactive value
     plot_type("quantity")
+    # Removing the additional class (color), leaving the base (button)
+    # Swapping colors to show which is active
     shinyjs::removeClass(selector = "#show_price", class = "blue")
     shinyjs::addClass(selector = "#show_price", class = "gray")
     shinyjs::removeClass(selector = "#show_quantity", class = "gray")
@@ -256,6 +268,7 @@ server <- function(input, output, session) {
     shinyjs::addClass(selector = "#show_price", class = "blue")
   })
   
+  # initial render of whichever bar plot and will rerun whenever plot_type or inventory_data (reactive expressions) change - they are dependencies
   output$barPlot <- renderPlotly({
     data <- inventory_data()
     if (plot_type() == "quantity") {
@@ -285,14 +298,16 @@ server <- function(input, output, session) {
   output$admin_status <- reactive({
     admin_status()
   })
-  outputOptions(output, 'admin_status', suspendWhenHidden = FALSE)
+  outputOptions(output, 'admin_status', suspendWhenHidden = TRUE) # when ui components are hidden, you are always an admin and that cannot be taken from you. save resources by not rerunning once hidden
   
+  # Download as csv, only runs when clicked
   output$downloadData <- downloadHandler(
+    # Datestamped filename
     filename = function() {
       paste("inventory-", Sys.Date(), ".csv", sep="")
     },
     content = function(file) {
-      write_csv(inventory_data(), file)
+      write_csv(inventory_data(), file) 
     }
   )
 }

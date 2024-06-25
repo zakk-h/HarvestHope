@@ -168,7 +168,9 @@ server <- function(input, output, session) {
   # Initial rendering of the data table
   output$dataTable <- renderDT({
     datatable(
-      inventory_data() %>%
+      # Only display the sections checked in checkboxGroupInput
+      filtered_data <- inventory_data() %>%
+        filter(Combined_Section %in% input$sections) %>%
         mutate(Quantity = sprintf( # Quantity column to include the quantity and buttons
           '%s <div style="white-space: nowrap;"><button id="minus_%s" class="btn btn-secondary btn-sm">-</button> <button id="plus_%s" class="btn btn-secondary btn-sm">+</button></div>',
           Quantity, RowID, RowID
@@ -270,9 +272,11 @@ server <- function(input, output, session) {
   
   # initial render of whichever bar plot and will rerun whenever plot_type or inventory_data (reactive expressions) change - they are dependencies
   output$barPlot <- renderPlotly({
-    data <- inventory_data()
+    # Only display the sections checked in checkboxGroupInput
+    filtered_data <- inventory_data() %>%
+      filter(Combined_Section %in% input$sections)
     if (plot_type() == "quantity") {
-      data_summarized <- data %>%
+      data_summarized <- filtered_data %>%
         group_by(Combined_Section) %>%
         summarise(Total_Quantity = sum(Quantity, na.rm = TRUE))
       plot_ly(data_summarized, x = ~Combined_Section, y = ~Total_Quantity, type = 'bar') %>%
@@ -282,7 +286,7 @@ server <- function(input, output, session) {
           yaxis = list(title = 'Total Quantity')
         )
     } else {
-      data_summarized <- data %>%
+      data_summarized <- filtered_data %>%
         group_by(Combined_Section) %>%
         summarise(Total_Price = sum(Quantity * `Estimated Price`, na.rm = TRUE))
       plot_ly(data_summarized, x = ~Combined_Section, y = ~Total_Price, type = 'bar', marker = list(color = 'rgb(50, 171, 96)')) %>%

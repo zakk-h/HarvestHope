@@ -128,6 +128,28 @@ server <- function(input, output, session) {
   hashed_password2 <- hashes$admin_passwords$hash2
   
   inventory_data <- reactiveVal()
+
+  # Load inventory initially and store in reactive value
+  initial_inventory <- read_inventory()
+  inventory_data(initial_inventory)
+  
+  # Define initial sections and selections based on the first data load
+  sections <- unique(initial_inventory$Combined_Section)
+  selections <- sections  # Default to selecting all sections initially
+  
+  # Update the UI elements for sections and item section selection
+  updateCheckboxGroupInput(
+    session,
+    "sections",
+    choices = sections,
+    selected = selections
+  )
+  
+  updateSelectInput(
+    session,
+    "item_section",
+    choices = unique(initial_inventory$Section)
+  )
   
   observe({
     invalidateLater(30000, session)  # Refresh data every 30 seconds to keep it fresh from concurrent modifications
@@ -135,28 +157,6 @@ server <- function(input, output, session) {
     inventory <-
       read_inventory() # Adding, removing, etc all do not need this functionality - they pull the latest right before they write
     inventory_data(inventory) # This is mainly for extensive idle time
-    
-    # Determine unique combined sections from the updated inventory
-    sections <- unique(inventory$Combined_Section)
-    
-    # Initialize selections if they are null or on the first load
-    if (is.null(input$sections) || length(input$sections) == 0) {
-      selections <- sections  # All sections are selected if none are currently selected
-    } else {
-      # Retain the current selections if they are not null
-      selections <- input$sections
-    }
-    
-    # Update the checkbox group input with the latest sections and retain selections
-    updateCheckboxGroupInput(
-      session,
-      "sections",
-      choices = sections,
-      selected = selections
-    )
-    
-    # Update the dropdown for selecting item sections based on the entire inventory's sections
-    updateSelectInput(session, "item_section", choices = unique(inventory$Section))
     
     # Updating inventory_data will trigger the data table to update, etc.
   })
@@ -230,7 +230,7 @@ server <- function(input, output, session) {
     replaceData(dataTableProxy, updated_inventory, resetPaging = FALSE) # Updating what is displayed in the data table
   })
   
-  # Initial rendering of the data table
+  # Rendering of the data table - will rerun whenever a dependency changes - such as sections checked or the data
   output$dataTable <- renderDT({
     datatable(
       # Only display the sections checked in checkboxGroupInput
@@ -347,7 +347,7 @@ server <- function(input, output, session) {
     shinyjs::addClass(selector = "#show_price", class = "blue")
   })
   
-  # initial render of whichever bar plot and will rerun whenever plot_type or inventory_data (reactive expressions) change - they are dependencies
+  # Render bar plot and will rerun whenever plot_type or inventory_data or input$sections (reactive expressions or inputs) change - they are dependencies
   output$barPlot <- renderPlotly({
     # Only display the sections checked in checkboxGroupInput
     filtered_data <- inventory_data() %>%

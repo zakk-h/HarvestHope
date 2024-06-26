@@ -194,13 +194,18 @@ server <- function(input, output, session) {
       return()
     }
     
+    if (nchar(trimws(input$item_name)) == 0) {
+      showNotification("Error: Item name cannot be blank.", type = "error")
+      return()
+    }
+    
     current_inventory <-
       read_inventory() # Getting fresh data from the Google Sheet
     
     new_item <- tibble(
-      Item = input$item_name,
+      Item = gsub("\\s+", " ", trimws(input$item_name)), # Remove trailing/leading whitespace and multiple spaces
       Quantity = input$item_quantity,
-      Comments = input$item_comment,
+      Comments = gsub("\\s+", " ", trimws(input$item_comment)),
       Section = input$item_section,
       Combined_Section = case_when(
         # Combined Section for visualization
@@ -225,6 +230,11 @@ server <- function(input, output, session) {
       RowID = max(current_inventory$RowID, na.rm = TRUE) + 1 # The next row id; this itself doesn't mean it goes last, it just gives a unique identifier. There will never be a gap because the row id assigned to the imported data is the row number from the sheet which is assumed to be continuous.
     )
     
+    # If the user tries to add an item with the same name and set of comments, merge them
+    # Usually comments would be blank. If they have different comments, they should be kept separate
+    # Even if these items have different sections, we accept this as a user mistake and still merge, because they have the same item name
+    # In the case of different sections, they merge into the first (existing) category.
+    
     # Binding new_item as the row following the end of current_inventory
     # Could swap parameters to make new_item be added to the front/top
     updated_inventory <- bind_rows(current_inventory, new_item) %>%
@@ -242,6 +252,7 @@ server <- function(input, output, session) {
     if (!show_estimated_price) {
       updated_inventory <- select(updated_inventory, -`Estimated Price`)
     }
+    
     
     inventory_data(updated_inventory) # Keeping reactive value updated
     write_inventory(updated_inventory) # Writing back to Google Sheet
@@ -387,7 +398,7 @@ server <- function(input, output, session) {
           yaxis = list(title = 'Total Quantity')
         )
     } else {
-      if (!"Estimated Price" %in% names(filtered_data)) {
+      if (!show_estimated_price) {
         # Return a plotly object with a message instead of a plot
         plot_ly() %>%
           add_annotations(
@@ -399,7 +410,7 @@ server <- function(input, output, session) {
             showarrow = FALSE,
             font = list(
               family = "Arial",
-              size = 16,
+              size = 24,
               color = "red"
             )
           ) %>%

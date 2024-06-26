@@ -199,6 +199,11 @@ server <- function(input, output, session) {
       return()
     }
     
+    if (show_estimated_price && !is.na(input$item_price) && (input$item_price < 0)) { # it is allowed to be NA (they don't know so we would record it as blank, which would not contribute to the price sums)
+      showNotification("Error: Price must be a non-negative number.", type = "error")
+      return()
+    }
+    
     current_inventory <-
       read_inventory() # Getting fresh data from the Google Sheet
     
@@ -436,7 +441,7 @@ server <- function(input, output, session) {
       } else {
         data_summarized <- filtered_data %>%
           group_by(Combined_Section) %>%
-          summarise(Total_Price = sum(Quantity * `Estimated Price`, na.rm = TRUE))
+          summarise(Total_Price = sum(Quantity * `Estimated Price`, na.rm = TRUE)) # Remove NAs, effectively treating them as 0
         plot_ly(
           data_summarized,
           x = ~ Combined_Section,
@@ -471,4 +476,5 @@ server <- function(input, output, session) {
   )
 }
 
+# Run app
 shinyApp(ui = ui, server = server)

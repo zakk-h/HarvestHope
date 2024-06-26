@@ -3,7 +3,7 @@
 library(tidyverse)
 library(ggplot2)
 
-inventory <- read_csv("TechInventory.csv")
+inventory <- read_csv("confidential/TechInventory.csv")
 
 # Remove rows where Quantity is NA (those are divider rows)
 inventory <- inventory %>%

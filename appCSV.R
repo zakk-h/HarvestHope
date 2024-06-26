@@ -8,7 +8,7 @@ library(shinyjs)
 library(sodium)
 library(jsonlite)
 
-inventory <- read_csv("TechInventory.csv")
+inventory <- read_csv("confidential/TechInventory.csv")
 
 # Password hashes to check against for authentication
 hashes <- fromJSON("confidential/shinypasswords.json")

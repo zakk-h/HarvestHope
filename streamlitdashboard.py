@@ -6,6 +6,7 @@ import plotly.express as px
 import numpy as np
 from st_aggrid import AgGrid, GridOptionsBuilder
 import hashlib
+import json
 
 # Password Hash
 low_level_hash = st.secrets["clearance"]["low_level"]
@@ -128,6 +129,47 @@ if st.session_state['authenticated']:
                             labels={'Annual Charges': 'Total Annual Charges ($)', 'Administration': 'Administration'},
                             color='Administration')
     st.plotly_chart(fig_admin_charges)
+
+    # Load GeoJSON data for South Carolina counties
+    @st.cache_data(show_spinner=False)
+    def load_geojson():
+        with open('south_carolina_counties.geojson') as f:
+            return json.load(f)
+
+    geojson = load_geojson()
+
+    # Function to map location to county for Harvest Hope offices
+    def get_county(location):
+        if location == "Columbia":
+            return "Richland"
+        return location
+
+    # Data to display in heatmap
+    heatmap_data_counts = data_phone.groupby('Location').size().reset_index(name='Phone Counts')
+    heatmap_data_counts['County'] = heatmap_data_counts['Location'].apply(get_county)
+
+    heatmap_data_charges = data_phone.groupby('Location')['Annual Charges'].sum().reset_index()
+    heatmap_data_charges['County'] = heatmap_data_charges['Location'].apply(get_county)
+
+    heatmap_data_prices = data_phone.groupby('Location')['Estimated Price'].sum().reset_index()
+    heatmap_data_prices['County'] = heatmap_data_prices['Location'].apply(get_county)
+
+    # Radio buttons for heatmap selection
+    heatmap_option = st.radio("Select Heatmap to Display", ('Phone Counts', 'Annual Phone Charges', 'Estimated Price of Phones'))
+
+    if heatmap_option == 'Phone Counts':
+        fig_heatmap = px.choropleth(heatmap_data_counts, geojson=geojson, locations='County', featureidkey="properties.name",
+                                    color='Phone Counts', color_continuous_scale="Viridis", title="Phone Counts by County in South Carolina")
+    elif heatmap_option == 'Annual Phone Charges':
+        fig_heatmap = px.choropleth(heatmap_data_charges, geojson=geojson, locations='County', featureidkey="properties.name",
+                                    color='Annual Charges', color_continuous_scale="Viridis", title="Annual Phone Charges by County in South Carolina")
+    else:
+        fig_heatmap = px.choropleth(heatmap_data_prices, geojson=geojson, locations='County', featureidkey="properties.name",
+                                    color='Estimated Price', color_continuous_scale="Viridis", title="Estimated Price of Phones by County in South Carolina")
+
+
+    fig_heatmap.update_geos(fitbounds="locations", visible=False)
+    st.plotly_chart(fig_heatmap)
 
     # Interactive Data Tables with Download Buttons
     st.subheader("Explore Data")

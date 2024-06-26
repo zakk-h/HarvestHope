@@ -134,10 +134,10 @@ server <- function(input, output, session) {
   # Check if "Estimated Price" exists and adjust UI accordingly
   if ("Estimated Price" %in% names(initial_inventory)) {
     shinyjs::show("item_price")
-    show_estimated_price = TRUE
+    show_estimated_price <- TRUE
   } else {
     shinyjs::hide("item_price")
-    show_estimated_price = FALSE
+    show_estimated_price <- FALSE
   }
   
   

@@ -138,21 +138,40 @@ if st.session_state['authenticated']:
 
     geojson = load_geojson()
 
+    all_counties = ["Abbeville", "Aiken", "Allendale", "Anderson", "Bamberg", "Barnwell", "Beaufort", "Berkeley", "Calhoun", "Charleston", "Cherokee", "Chester", "Chesterfield", "Clarendon", "Colleton", "Darlington", "Dillon", "Dorchester", "Edgefield", "Fairfield", "Florence", "Georgetown", "Greenville", "Greenwood", "Hampton", "Horry", "Jasper", "Kershaw", "Lancaster", "Laurens", "Lee", "Lexington", "McCormick", "Marion", "Marlboro", "Newberry", "Oconee", "Orangeburg", "Pickens", "Richland", "Saluda", "Spartanburg", "Sumter", "Union", "Williamsburg", "York"]
+
+    # Convert this list into a DataFrame
+    all_counties_df = pd.DataFrame(all_counties, columns=['County'])
+
     # Function to map location to county for Harvest Hope offices
     def get_county(location):
         if location == "Columbia":
             return "Richland"
         return location
 
-    # Data to display in heatmap
+    # Merge the existing data with this complete list
+    def prepare_data(data, data_column, default_value=0):
+        data['County'] = data['Location'].apply(get_county)
+        merged_data = pd.merge(all_counties_df, data[['County', data_column]], on='County', how='left')
+        merged_data.fillna({'Phone Counts': default_value, 'Annual Charges': default_value, 'Estimated Price': default_value}, inplace=True) # Filling blank/NA with default value of 0 so the other other counties will show up as background on the map
+        return merged_data
+    
     heatmap_data_counts = data_phone.groupby('Location').size().reset_index(name='Phone Counts')
-    heatmap_data_counts['County'] = heatmap_data_counts['Location'].apply(get_county)
+    ''' heatmaps_data_counts example (indices aren't actually present)
+            Location  Phone Counts
+        0  Charleston            1
+        1    Columbia            3
+        2  Greenville            3
+    '''
+    # The locations are mapped to counties (Columbia -> Richland)
+    # and counties not originally in the data_phone will have 'Phone Counts' set to the default value of 0.
+    heatmap_data_counts = prepare_data(heatmap_data_counts, 'Phone Counts')
 
     heatmap_data_charges = data_phone.groupby('Location')['Annual Charges'].sum().reset_index()
-    heatmap_data_charges['County'] = heatmap_data_charges['Location'].apply(get_county)
+    heatmap_data_charges = prepare_data(heatmap_data_charges, 'Annual Charges')
 
     heatmap_data_prices = data_phone.groupby('Location')['Estimated Price'].sum().reset_index()
-    heatmap_data_prices['County'] = heatmap_data_prices['Location'].apply(get_county)
+    heatmap_data_prices = prepare_data(heatmap_data_prices, 'Estimated Price')
 
     # Radio buttons for heatmap selection
     heatmap_option = st.radio("Select Heatmap to Display", ('Phone Counts', 'Annual Phone Charges', 'Estimated Price of Phones'))
@@ -168,7 +187,8 @@ if st.session_state['authenticated']:
                                     color='Estimated Price', color_continuous_scale="Viridis", title="Estimated Price of Phones by County in South Carolina")
 
 
-    fig_heatmap.update_geos(fitbounds="locations", visible=False)
+    fig_heatmap.update_geos(fitbounds="locations", visible=True)
+    fig_heatmap.update_traces(marker_line_width=0.5, marker_line_color='black')
     st.plotly_chart(fig_heatmap)
 
     # Interactive Data Tables with Download Buttons

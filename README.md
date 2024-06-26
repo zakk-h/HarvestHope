@@ -115,14 +115,15 @@ You can access the live app <a href="https://zakk-h.shinyapps.io/harvesthope" ta
 </a>
 
 ## Features
-- **Data Visualization**: Provides a bar plot visualization of the total quantity of items by section.
+- **Data Visualization**: The inventory dashboard features two primary bar plots to help visualize your inventory data effectively: Total Quantity or Total Price per Section. A sleek and intuitive navigation bar featuring Font Awesome circles allows you to switch between the two bar plots seamlessly, highlighting the circle that corresponds to the active page.  
 - **Interactive Data Table**: Displays inventory data in a searchable and sortable table with the ability to update item quantities directly from the interface.
 - **Data Entry**: Allows authorized users to add new items to the inventory in the side panel with drop down categories or edit quantities of existing items with the plus or minus buttons embedded in the data table.
 - **Google Sheets Connection**: The app integrates directly with Google Sheets, ensuring real-time data synchronization. This allows users to maintain accurate inventory records without manual data entry or updates. The Google Sheets API credentials are securely stored in a JSON file (`confidential/hhinventory_service_account_credentials.json`).
 - **Fresh Data**: The app always pulls the latest spreadsheet data before making any changes such as increasing or decreasing item quantities or adding new items. This ensures that pushed changes would never "roll back" other changes if another user modified another row. In the case of increments or decrements, those are applied to the latest data, so even if users are editing properties of the same model, their changes will stack. This functionality is designed to accommodate scenarios where users may be cataloging devices of the same model but not the exact same item simultaneously (that would be physically impossible). Additionally, the app automatically refreshes the data every 30 seconds during periods of idling to ensure all users are viewing to the latest information.
-- **Admin Authentication**: To make any changes to the data, you must be authenticated. The app uses the Sodium library for secure password hashing. User passwords are hashed and compared against pre-stored hashes in a secure JSON file (`confidential/shinypasswords.json`). To align with the Streamlit application, this implementation has two possible passwords, either giving the same access in the Shiny application.
+- **Admin Authentication**: To make any changes to the data, you must be authenticated. The app uses the Sodium library for secure password hashing. User passwords are hashed and compared against pre-stored hashes in a secure JSON file (`confidential/shinypasswords.json`). To align with the Streamlit application, this implementation has two possible passwords, either giving the same access in the Shiny application. To authenicate, either click the button or hit Enter.
 - **Download Data**: Option to download the current inventory data as a CSV file.
-- **Item Merging**: Automatically collapses items with the same name and comments, even if they are tagged in different sections, simplifying data entry and decluttering the table.
+- **Item Merging**: Automatically collapses items with the same name and comments, even if they are tagged in different sections, simplifying data entry and decluttering the table. Even if the data started with duplicates, when trying to add another of the item, the app will automatically collapse them into a single line item with summed quantity. This detection of identical elements is thorough - eliminating more than one consecutive space, extra white space, or case differences.
+- **Flexible Initial Data**: The initial Google Sheet can either have an Estimated Price column or not: the app will work either way. If it does not have it, it will never prompt you to enter a price for the item or display the column in the future in the data table.  
 
 ## Getting Started
 
@@ -188,20 +189,37 @@ cat("Hashed Password 1:", hashed_password1, "\n")
 cat("Hashed Password 2:", hashed_password2, "\n")
 ```
 
-## Running the App
+## Using the App
 Open the app.R file in RStudio.
 Run the application by clicking the "Run App" button in RStudio or by using the command:
 ```R
 shiny::runApp()
 ```
-## Using the App
-- **Sections Filter**: Select sections to filter the inventory data displayed.
-- **Add Item Form**: Fields to enter the item name, quantity, comments, and section.
-- **Admin Panel**: Password input and login button for admin authentication.
-- **Data Table**: Interactive table with plus and minus buttons to adjust item quantities.
-- **Bar Plot**: Visualization of the total quantity of items by combined sections.
-- **Admin Authentication**: Only authenticated users can add items to the inventory or modify item quantities. Admin login requires a password, which is securely hashed and compared using the sodium package.
-- **Data Handling**: The inventory data is initially loaded from a CSV file named TechInventory.csv.Changes made to the inventory data are written back to the CSV file to ensure persistence. Users can download the current state of the inventory data as a CSV file.
+
+### Deployment
+
+Install and load the rsconnect Package into your R session:
+```R
+install.packages("rsconnect")
+library(rsconnect)
+```
+
+Use the `rsconnect` package to authenticate your shinyapps.io account:
+```R
+rsconnect::setAccountInfo(name='your_shinyapps_username', 
+                          token='your_token', 
+                          secret='your_secret')
+```
+
+Deploy the app to shinyapps.io:
+```R
+rsconnect::deployApp()
+```
+
+Or more generally:
+```R
+rsconnect::deployApp('path_to_your_app_directory')
+```
 
 ## Current Issues
 - **State Resetting**: When updating the data table, the state (e.g., current page, search filters) resets. This can be inconvenient for users making multiple edits. Considerations for improvement include maintaining state between updates.

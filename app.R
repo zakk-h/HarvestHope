@@ -257,7 +257,7 @@ server <- function(input, output, session) {
       # Treat NA and empty string as equivalent for comparison
       item1 <- ifelse(is.na(item1) | item1 == "", "", item1)
       item2 <- ifelse(is.na(item2) | item2 == "", "", item2)
-      return(trimws(item1) == trimws(item2))
+      return (tolower(trimws(item1)) == tolower(trimws(item2)))
     }
     # Vector of matches (usually just 1)
     existing_item_index <- which(compare_items(current_inventory$Item, new_item$Item) & 

@@ -97,11 +97,22 @@ print(f"Hashed Password 2: {hashed_password2}")
 ```
 
 
-### Running the App
+### Using the App
 Run the application using the following command:
 ```bash
 streamlit run streamlitdashboard.py
 ```
+
+### Deployment
+Deployment is done through the Streamlit Sharing web interface. 
+
+Prepare an updated Github repository with the Python script and `requirements.txt`. You should likely add `secrets.toml` to your `.gitignore` file. 
+
+Running `pip freeze > requirements.txt` will populate the file with all installed packages in the current environment along with their versions.
+
+On [Streamlit Sharing](https://share.streamlit.io/), you will link your repository and paste the contents of `secrets.toml` where applicable.
+
+The Streamlit application will automatically update as you push updates to your repository.
 
 # Inventory Management Shiny App Documentation
 
@@ -198,7 +209,7 @@ shiny::runApp()
 
 ### Deployment
 
-Install and load the rsconnect Package into your R session:
+Install and load the `rsconnect` Package into your R session:
 ```R
 install.packages("rsconnect")
 library(rsconnect)

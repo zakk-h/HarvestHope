@@ -139,9 +139,11 @@ if st.session_state['authenticated']:
     geojson = load_geojson()
 
     all_counties = ["Abbeville", "Aiken", "Allendale", "Anderson", "Bamberg", "Barnwell", "Beaufort", "Berkeley", "Calhoun", "Charleston", "Cherokee", "Chester", "Chesterfield", "Clarendon", "Colleton", "Darlington", "Dillon", "Dorchester", "Edgefield", "Fairfield", "Florence", "Georgetown", "Greenville", "Greenwood", "Hampton", "Horry", "Jasper", "Kershaw", "Lancaster", "Laurens", "Lee", "Lexington", "McCormick", "Marion", "Marlboro", "Newberry", "Oconee", "Orangeburg", "Pickens", "Richland", "Saluda", "Spartanburg", "Sumter", "Union", "Williamsburg", "York"]
-
+    #all_counties = [feature['properties']['name'] for feature in geojson['features']]
+    
     # Convert this list into a DataFrame
     all_counties_df = pd.DataFrame(all_counties, columns=['County'])
+
 
     # Function to map location to county for Harvest Hope offices
     def get_county(location):
@@ -150,19 +152,23 @@ if st.session_state['authenticated']:
         return location
 
     # Merge the existing data with this complete list
+    # First convert cities to counties (it is an injective map) and then add all other counties with default value 0
+    @st.cache_data(show_spinner=False)
     def prepare_data(data, data_column, default_value=0):
-        data['County'] = data['Location'].apply(get_county)
-        merged_data = pd.merge(all_counties_df, data[['County', data_column]], on='County', how='left')
-        merged_data.fillna({'Phone Counts': default_value, 'Annual Charges': default_value, 'Estimated Price': default_value}, inplace=True) # Filling blank/NA with default value of 0 so the other other counties will show up as background on the map
+        # hypothetically, if multiple locations mapped to the same county, we would need to sum them which is what the next two lines do. currently for Harvest Hope, this is an impossible scenario, but it is handled.
+        data['County'] = data['Location'].apply(get_county) # add new column
+        data = data.groupby('County')[data_column].sum().reset_index() # override old data with nx2 data: each county name and summed data_column
+        merged_data = pd.merge(all_counties_df, data[['County', data_column]], on='County', how='left') # Taking every row from all_counties and adding data_column from 'data' to it if 'data' has that county. 'data' technically only has 2 columns but we specify just to be safe.
+        merged_data[data_column].fillna(default_value, inplace=True)
         return merged_data
     
     heatmap_data_counts = data_phone.groupby('Location').size().reset_index(name='Phone Counts')
-    ''' heatmaps_data_counts example (indices aren't actually present)
-            Location  Phone Counts
-        0  Charleston            1
-        1    Columbia            3
-        2  Greenville            3
-    '''
+    # heatmaps_data_counts example (indices aren't actually present)
+    #        Location  Phone Counts
+    #    0  Charleston            1
+    #    1    Columbia            3
+    #    2  Greenville            3
+    
     # The locations are mapped to counties (Columbia -> Richland)
     # and counties not originally in the data_phone will have 'Phone Counts' set to the default value of 0.
     heatmap_data_counts = prepare_data(heatmap_data_counts, 'Phone Counts')
@@ -176,15 +182,17 @@ if st.session_state['authenticated']:
     # Radio buttons for heatmap selection
     heatmap_option = st.radio("Select Heatmap to Display", ('Phone Counts', 'Annual Phone Charges', 'Estimated Price of Phones'))
 
+    # Good color scales: YlOrRd, YlGnBu, Cividis, Portland
+    scheme = "YlGnBu"
     if heatmap_option == 'Phone Counts':
         fig_heatmap = px.choropleth(heatmap_data_counts, geojson=geojson, locations='County', featureidkey="properties.name",
-                                    color='Phone Counts', color_continuous_scale="Viridis", title="Phone Counts by County in South Carolina")
+                                    color='Phone Counts', color_continuous_scale=scheme, title="Phone Counts by County in South Carolina")
     elif heatmap_option == 'Annual Phone Charges':
         fig_heatmap = px.choropleth(heatmap_data_charges, geojson=geojson, locations='County', featureidkey="properties.name",
-                                    color='Annual Charges', color_continuous_scale="Viridis", title="Annual Phone Charges by County in South Carolina")
+                                    color='Annual Charges', color_continuous_scale=scheme, title="Annual Phone Charges by County in South Carolina")
     else:
         fig_heatmap = px.choropleth(heatmap_data_prices, geojson=geojson, locations='County', featureidkey="properties.name",
-                                    color='Estimated Price', color_continuous_scale="Viridis", title="Estimated Price of Phones by County in South Carolina")
+                                    color='Estimated Price', color_continuous_scale=scheme, title="Estimated Price of Phones by County in South Carolina")
 
 
     fig_heatmap.update_geos(fitbounds="locations", visible=True)

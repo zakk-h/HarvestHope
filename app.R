@@ -226,7 +226,7 @@ server <- function(input, output, session) {
         input$item_section %in% c("Miscellaneous Tech", "Other Accessories") ~ "Miscellaneous & Accessories",
         TRUE ~ input$item_section
       ),
-      `Estimated Price` = ifelse("Estimated Price" %in% names(current_inventory), input$item_price, NA),
+      `Estimated Price` = ifelse(show_estimated_price, input$item_price, NA),
       RowID = max(current_inventory$RowID, na.rm = TRUE) + 1 # The next row id; this itself doesn't mean it goes last, it just gives a unique identifier. There will never be a gap because the row id assigned to the imported data is the row number from the sheet which is assumed to be continuous.
     )
     
@@ -234,6 +234,7 @@ server <- function(input, output, session) {
     # Usually comments would be blank. If they have different comments, they should be kept separate
     # Even if these items have different sections, we accept this as a user mistake and still merge, because they have the same item name
     # In the case of different sections, they merge into the first (existing) category.
+    
     # Check if an item with the same name and comments already exists
     compare_items <- function(item1, item2) {
       # Treat NA and empty string as equivalent for comparison
@@ -260,21 +261,9 @@ server <- function(input, output, session) {
       current_inventory <- bind_rows(current_inventory, new_item)
     }
     
-    # Binding new_item as the row following the end of current_inventory
-    # Could swap parameters to make new_item be added to the front/top
-    #updated_inventory <- bind_rows(current_inventory, new_item) %>%
-    #  group_by(Item, Comments) %>%
-    #  summarise(
-    #    Quantity = sum(Quantity, na.rm = TRUE),
-    #    Section = first(Section),
-    #    Combined_Section = first(Combined_Section),
-    #    `Estimated Price` = first(`Estimated Price`),
-    #    RowID = first(RowID),
-    #    .groups = 'drop'
-    #  )
     updated_inventory <- current_inventory
     # Removing estimated_price column if it wasn't there originally
-    if (!show_estimated_price) {
+    if (!show_estimated_price & "Estimated Price" %in% names(current_inventory)) {
       updated_inventory <- select(updated_inventory, -`Estimated Price`)
     }
     
@@ -291,6 +280,7 @@ server <- function(input, output, session) {
       # Only display the sections checked in checkboxGroupInput
       filtered_data <- inventory_data() %>%
         filter(Combined_Section %in% input$sections) %>%
+        arrange(Section, Item) %>% # Sorting; if add item is performed, this will re-render and it will re-sort. but, if replaceData in the case of + - buttons runs, this willl not rerun.
         mutate(
           Quantity = sprintf(
             # Quantity column to include the quantity and buttons

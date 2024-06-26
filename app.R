@@ -163,6 +163,18 @@ server <- function(input, output, session) {
   hashed_password1 <- hashes$admin_passwords$hash1
   hashed_password2 <- hashes$admin_passwords$hash2
   
+  # If 'Enter' key is pressed in password field, automatically click the button
+  runjs("
+  document.getElementById('admin_password').addEventListener('keypress', function(event) {
+    if (event.keyCode === 13) { // 13 is the key code for Enter
+      setTimeout(function() {
+        document.getElementById('admin_login').click();
+      }, 100);  // Delay button click by a short period to prevent issues if they hit enter right after they finish typing
+    }
+  });
+")
+  
+  
   observe({
     invalidateLater(30000, session)  # Refresh data every 30 seconds to keep it fresh from concurrent modifications
     

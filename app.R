@@ -234,20 +234,45 @@ server <- function(input, output, session) {
     # Usually comments would be blank. If they have different comments, they should be kept separate
     # Even if these items have different sections, we accept this as a user mistake and still merge, because they have the same item name
     # In the case of different sections, they merge into the first (existing) category.
+    # Check if an item with the same name and comments already exists
+    compare_items <- function(item1, item2) {
+      # Treat NA and empty string as equivalent for comparison
+      item1 <- ifelse(is.na(item1) | item1 == "", "", item1)
+      item2 <- ifelse(is.na(item2) | item2 == "", "", item2)
+      return(trimws(item1) == trimws(item2))
+    }
+    # Vector of matches (usually just 1)
+    existing_item_index <- which(compare_items(current_inventory$Item, new_item$Item) & 
+                                   compare_items(current_inventory$Comments, new_item$Comments))    
+    if (length(existing_item_index) > 0) {
+      # Sum the quantities for all matches and assign it to the first match
+      total_quantity <- sum(current_inventory$Quantity[existing_item_index], new_item$Quantity)
+      current_inventory$Quantity[existing_item_index[1]] <- total_quantity
+      
+      # If there are multiple matches, remove the subsequent ones
+      if (length(existing_item_index) > 1) {
+        for (i in existing_item_index[-1]) {
+          current_inventory <- current_inventory[-i, ]
+        }
+      }
+    } else {
+      # If it doesn't exist, add as new row
+      current_inventory <- bind_rows(current_inventory, new_item)
+    }
     
     # Binding new_item as the row following the end of current_inventory
     # Could swap parameters to make new_item be added to the front/top
-    updated_inventory <- bind_rows(current_inventory, new_item) %>%
-      group_by(Item, Comments) %>%
-      summarise(
-        Quantity = sum(Quantity, na.rm = TRUE),
-        Section = first(Section),
-        Combined_Section = first(Combined_Section),
-        `Estimated Price` = first(`Estimated Price`),
-        RowID = first(RowID),
-        .groups = 'drop'
-      )
-    
+    #updated_inventory <- bind_rows(current_inventory, new_item) %>%
+    #  group_by(Item, Comments) %>%
+    #  summarise(
+    #    Quantity = sum(Quantity, na.rm = TRUE),
+    #    Section = first(Section),
+    #    Combined_Section = first(Combined_Section),
+    #    `Estimated Price` = first(`Estimated Price`),
+    #    RowID = first(RowID),
+    #    .groups = 'drop'
+    #  )
+    updated_inventory <- current_inventory
     # Removing estimated_price column if it wasn't there originally
     if (!show_estimated_price) {
       updated_inventory <- select(updated_inventory, -`Estimated Price`)

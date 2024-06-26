@@ -37,6 +37,11 @@ if st.session_state['clearance_level'] != 'high':
             if is_high_level: st.rerun() # run script from beginning (will recognize authenication from session_state and avoid password prompt)
 
 if st.session_state['authenticated']:
+
+    # Loading screen placeholder
+    loading_message = st.empty()
+    loading_message.text("Loading the dashboard... Please wait.")
+
     # Cache the scope, credentials, and client authorization
     @st.cache_resource
     def get_gspread_client():
@@ -64,8 +69,8 @@ if st.session_state['authenticated']:
             data['Annual Charges'] = data['Total Charges'] * 12
         if 'Estimated Price' in data.columns:
             data['Estimated Price'] = pd.to_numeric(data['Estimated Price'].replace('[\$,]', '', regex=True), errors='coerce')
-        if 'Quantity' in data.columns:
-            data['Total Value'] = data['Quantity'] * data['Estimated Price']
+            if 'Quantity' in data.columns:
+                data['Total Value'] = data['Quantity'] * data['Estimated Price']
         return data
 
     # Load and process data on first time
@@ -79,15 +84,14 @@ if st.session_state['authenticated']:
     data_server = st.session_state.data_server
     data_phone = st.session_state.data_phone.copy() # avoid modifying properties like usernames in the original. without .copy, they would refer to the same object.
 
-    #anonymize names in data if user lacks sufficient clearance
+    # Anonymize names in data if user lacks sufficient clearance
     if st.session_state['clearance_level'] != 'high':
         data_phone['Username'] = ['User ' + str(i) for i in range(len(data_phone))]
 
     # Calculate summaries
-    total_inventory_value = data_server['Total Value'].sum()
+    storage_value = data_server['Total Value'].sum()
     total_annual_subscription = data_phone['Annual Charges'].sum()
     phones_value = data_phone['Estimated Price'].sum()
-    storage_value = total_inventory_value  # Since all server items are in storage
 
     st.title("Harvest Hope Tech Dashboard")
 
@@ -97,6 +101,8 @@ if st.session_state['authenticated']:
     col1.metric("Total Annual Subscriptions", f"${total_annual_subscription:,.2f}")
     col2.metric("Total Phones Value", f"${phones_value:,.2f}")
     col3.metric("Total Storage Value", f"${storage_value:,.2f}")
+
+    loading_message.empty() # We loaded enough to justify removing the loading screen message
 
     # Bar Chart: Inventory Value by Category
     fig_server_value = px.bar(data_server.groupby('Combined_Section')['Total Value'].sum().reset_index(),
@@ -171,7 +177,7 @@ if st.session_state['authenticated']:
     
     # The locations are mapped to counties (Columbia -> Richland)
     # and counties not originally in the data_phone will have 'Phone Counts' set to the default value of 0.
-    heatmap_data_counts = prepare_data(heatmap_data_counts, 'Phone Counts')
+    heatmap_data_counts = prepare_data(heatmap_data_counts, 'Phone Counts') # data is passed by reference
 
     heatmap_data_charges = data_phone.groupby('Location')['Annual Charges'].sum().reset_index()
     heatmap_data_charges = prepare_data(heatmap_data_charges, 'Annual Charges')

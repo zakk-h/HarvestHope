@@ -7,7 +7,6 @@ import numpy as np
 from st_aggrid import AgGrid, GridOptionsBuilder
 import hashlib
 import json
-import random
 
 # Password Hash
 low_level_hash = st.secrets["clearance"]["low_level"]
@@ -150,12 +149,12 @@ if st.session_state['authenticated']:
             "#006d2c",  # dark green
             "#00441b"   # darker green
         ]
-        random.shuffle(location_colors)
+        #random.shuffle(location_colors)
         admin_colors = [
             "#9ecae1",  # light blue
             "#08519c"   # dark blue
         ]
-        random.shuffle(admin_colors)
+        #random.shuffle(admin_colors)
 
         fig_subscription_pie = px.pie(data_phone, values='Annual Phone Bill', names='Location',
                                     title="Subscription Cost by Location",
@@ -180,22 +179,22 @@ if st.session_state['authenticated']:
         )
         brown_yellow_palette = [
             "#FFF59D",  # soft yellow
-            "#FFF176",  # soft yellow
-            "#FFFDE7",  # lightest yellow
-            "#FFF9C4",  # lighter yellow
-            "#FDD835",  # mustard yellow
-            "#FBC02D",  # dark yellow
-            "#F9A825",  # yellowish brown
+            "#6D4C41",   # dark brown
             "#F57F17",  # amber
+            "#FBC02D",  # dark yellow
+            "#FFF9C4",  # lighter yellow
             "#BCAAA4",  # light brown
+            "#FFFDE7",  # lightest yellow
+            "#FDD835",  # mustard yellow
+            "#795548",  # medium dark brown
+            "#FFF176",  # soft yellow
+            "#F9A825",  # yellowish brown
             "#A1887F",  # medium light brown
             "#8D6E63",  # medium brown
-            "#795548",  # medium dark brown
-            "#6D4C41",   # dark brown
             "#FFEE58",  # sunny yellow
             "#FFEB3B"  # bright yellow
         ]
-        random.shuffle(brown_yellow_palette)
+        #random.shuffle(brown_yellow_palette)
         if chart_type == 'Bar Chart':
             fig_device = px.bar(
                 data_stationary.groupby('Device')['Estimated Price'].sum().reset_index(),
@@ -250,8 +249,8 @@ if st.session_state['authenticated']:
 
     geojson = load_geojson()
 
-    all_counties = ["Abbeville", "Aiken", "Allendale", "Anderson", "Bamberg", "Barnwell", "Beaufort", "Berkeley", "Calhoun", "Charleston", "Cherokee", "Chester", "Chesterfield", "Clarendon", "Colleton", "Darlington", "Dillon", "Dorchester", "Edgefield", "Fairfield", "Florence", "Georgetown", "Greenville", "Greenwood", "Hampton", "Horry", "Jasper", "Kershaw", "Lancaster", "Laurens", "Lee", "Lexington", "McCormick", "Marion", "Marlboro", "Newberry", "Oconee", "Orangeburg", "Pickens", "Richland", "Saluda", "Spartanburg", "Sumter", "Union", "Williamsburg", "York"]
-    #all_counties = [feature['properties']['name'] for feature in geojson['features']]
+    #all_counties = ["Abbeville", "Aiken", "Allendale", "Anderson", "Bamberg", "Barnwell", "Beaufort", "Berkeley", "Calhoun", "Charleston", "Cherokee", "Chester", "Chesterfield", "Clarendon", "Colleton", "Darlington", "Dillon", "Dorchester", "Edgefield", "Fairfield", "Florence", "Georgetown", "Greenville", "Greenwood", "Hampton", "Horry", "Jasper", "Kershaw", "Lancaster", "Laurens", "Lee", "Lexington", "McCormick", "Marion", "Marlboro", "Newberry", "Oconee", "Orangeburg", "Pickens", "Richland", "Saluda", "Spartanburg", "Sumter", "Union", "Williamsburg", "York"]
+    all_counties = [feature['properties']['name'] for feature in geojson['features']]
     
     # Convert this list into a DataFrame
     all_counties_df = pd.DataFrame(all_counties, columns=['County'])

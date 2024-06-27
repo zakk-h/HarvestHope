@@ -15,7 +15,6 @@ high_level_hash = st.secrets["clearance"]["high_level"]
 # Initialize session state variables
 if 'authenticated' not in st.session_state:
     st.session_state['authenticated'] = False
-if 'clearance_level' not in st.session_state:
     st.session_state['clearance_level'] = None
 
 # Ask for password
@@ -37,73 +36,71 @@ if st.session_state['clearance_level'] != 'high':
 
 if st.session_state['authenticated']:
     # Loading screen
-    loading_message = st.empty()
-    loading_message.success(f"Authentication with {st.session_state['clearance_level']} clearance successful.")
-    loading_message2 = st.empty()
-    loading_message2.info("Loading dashboard, please wait...")
+    with st.spinner('Loading dashboard...'):
+        loading_message = st.empty()
+        loading_message.success(f"Authentication with {st.session_state['clearance_level']} clearance successful.")
 
-    # Cache the scope, credentials, and client authorization
-    @st.cache_resource
-    def get_gspread_client():
-        # Authentication - Secure way to handle API keys or credentials without including it in the app's public files
-        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
-        client = gspread.authorize(creds)
-        return client
- 
-    # Load data from Google Sheets
-    @st.cache_data(show_spinner=False)
-    def load_data(worksheet_name):
-        # Use cached client
-        client = get_gspread_client()
-        sheet = client.open("HH Inventory").worksheet(worksheet_name)
-        return pd.DataFrame(sheet.get_all_records())
+        # Cache the scope, credentials, and client authorization
+        @st.cache_resource
+        def get_gspread_client():
+            # Authentication - Secure way to handle API keys or credentials without including it in the app's public files
+            scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+            creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
+            client = gspread.authorize(creds)
+            return client
+    
+        # Load data from Google Sheets
+        @st.cache_data(show_spinner=False)
+        def load_data(worksheet_name):
+            # Use cached client
+            client = get_gspread_client()
+            sheet = client.open("HH Inventory").worksheet(worksheet_name)
+            return pd.DataFrame(sheet.get_all_records())
 
-    # Processing Data
-    @st.cache_data(show_spinner=False)
-    def process_data(data):
-        if 'RowID' in data.columns: # Only used by Shiny app
-            data = data.drop(columns=['RowID'])
-        if 'Total Charges' in data.columns:
-            data['Total Charges'] = pd.to_numeric(data['Total Charges'].replace('[\$,]', '', regex=True), errors='coerce')
-            data['Annual Charges'] = data['Total Charges'] * 12
-        if 'Estimated Price' in data.columns:
-            data['Estimated Price'] = pd.to_numeric(data['Estimated Price'].replace('[\$,]', '', regex=True), errors='coerce')
-            if 'Quantity' in data.columns:
-                data['Total Value'] = data['Quantity'] * data['Estimated Price']
-        return data
+        # Processing Data
+        @st.cache_data(show_spinner=False)
+        def process_data(data):
+            if 'RowID' in data.columns: # Only used by Shiny app
+                data = data.drop(columns=['RowID'])
+            if 'Total Charges' in data.columns:
+                data['Total Charges'] = pd.to_numeric(data['Total Charges'].replace('[\$,]', '', regex=True), errors='coerce')
+                data['Annual Charges'] = data['Total Charges'] * 12
+            if 'Estimated Price' in data.columns:
+                data['Estimated Price'] = pd.to_numeric(data['Estimated Price'].replace('[\$,]', '', regex=True), errors='coerce')
+                if 'Quantity' in data.columns:
+                    data['Total Value'] = data['Quantity'] * data['Estimated Price']
+            return data
 
-    # Load and process data on first time
-    if 'data_server' not in st.session_state:
-        st.session_state.data_server = process_data(load_data('testcompat'))
+        # Load and process data on first time
+        if 'data_server' not in st.session_state:
+            st.session_state.data_server = process_data(load_data('testcompat'))
 
-    if 'data_phone' not in st.session_state:
-        st.session_state.data_phone = process_data(load_data('PhoneSandbox'))
+        if 'data_phone' not in st.session_state:
+            st.session_state.data_phone = process_data(load_data('PhoneSandbox'))
 
-    # Use session state data for rendering in the app
-    data_server = st.session_state.data_server
-    data_phone = st.session_state.data_phone.copy() # avoid modifying properties like usernames in the original. without .copy, they would refer to the same object.
+        # Use session state data for rendering in the app
+        data_server = st.session_state.data_server
+        data_phone = st.session_state.data_phone.copy() # avoid modifying properties like usernames in the original. without .copy, they would refer to the same object.
 
-    # Anonymize names in data if user lacks sufficient clearance
-    if st.session_state['clearance_level'] != 'high':
-        data_phone['Username'] = ['User ' + str(i) for i in range(len(data_phone))]
+        # Anonymize names in data if user lacks sufficient clearance
+        if st.session_state['clearance_level'] != 'high':
+            data_phone['Username'] = ['User ' + str(i) for i in range(len(data_phone))]
 
-    # Calculate summaries
-    storage_value = data_server['Total Value'].sum()
-    total_annual_subscription = data_phone['Annual Charges'].sum()
-    phones_value = data_phone['Estimated Price'].sum()
+        # Calculate summaries
+        storage_value = data_server['Total Value'].sum()
+        total_annual_subscription = data_phone['Annual Charges'].sum()
+        phones_value = data_phone['Estimated Price'].sum()
 
-    st.title("Harvest Hope Tech Dashboard")
+        st.title("Harvest Hope Tech Dashboard")
 
-    # Summary Cards
-    st.subheader("Summary")
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Annual Subscriptions", f"${total_annual_subscription:,.2f}")
-    col2.metric("Total Phones Value", f"${phones_value:,.2f}")
-    col3.metric("Total Storage Value", f"${storage_value:,.2f}")
+        # Summary Cards
+        st.subheader("Summary")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Annual Subscriptions", f"${total_annual_subscription:,.2f}")
+        col2.metric("Total Phones Value", f"${phones_value:,.2f}")
+        col3.metric("Total Storage Value", f"${storage_value:,.2f}")
 
-    if st.session_state['clearance_level'] == 'high': loading_message.empty() # If high level, they no longer need to see what authentication they signed in as -  they have everything.
-    loading_message2.empty() # We loaded enough to justify removing the loading screen message
+        if st.session_state['clearance_level'] == 'high': loading_message.empty() # If high level, they no longer need to see what authentication they signed in as -  they have everything.
 
     # Bar Chart: Inventory Value by Category
     fig_server_value = px.bar(data_server.groupby('Combined_Section')['Total Value'].sum().reset_index(),

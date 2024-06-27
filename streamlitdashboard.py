@@ -33,14 +33,14 @@ if st.session_state['clearance_level'] != 'high':
         if is_high_level or is_low_level: # sufficient clearance
             st.session_state['authenticated'] = True
             st.session_state['clearance_level'] = 'high' if is_high_level else 'low'
-            st.success(f"Authenticated with {st.session_state['clearance_level']} level clearance")
             if is_high_level: st.rerun() # run script from beginning (will recognize authenication from session_state and avoid password prompt)
 
 if st.session_state['authenticated']:
-
-    # Loading screen placeholder
+    # Loading screen
     loading_message = st.empty()
-    loading_message.text("Loading the dashboard... Please wait.")
+    loading_message.success(f"Authentication with {st.session_state['clearance_level']} clearance successful.")
+    loading_message2 = st.empty()
+    loading_message2.info("Loading dashboard, please wait...")
 
     # Cache the scope, credentials, and client authorization
     @st.cache_resource
@@ -102,7 +102,8 @@ if st.session_state['authenticated']:
     col2.metric("Total Phones Value", f"${phones_value:,.2f}")
     col3.metric("Total Storage Value", f"${storage_value:,.2f}")
 
-    loading_message.empty() # We loaded enough to justify removing the loading screen message
+    if st.session_state['clearance_level'] == 'high': loading_message.empty() # If high level, they no longer need to see what authentication they signed in as -  they have everything.
+    loading_message2.empty() # We loaded enough to justify removing the loading screen message
 
     # Bar Chart: Inventory Value by Category
     fig_server_value = px.bar(data_server.groupby('Combined_Section')['Total Value'].sum().reset_index(),

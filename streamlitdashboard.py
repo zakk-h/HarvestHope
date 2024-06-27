@@ -89,13 +89,13 @@ if st.session_state['authenticated']:
 
         # Load and process data on first time
         if 'data_server' not in st.session_state:
-            st.session_state.data_server = process_data(load_data('TechInventorys'))
+            st.session_state.data_server = process_data(load_data('TechInventory'))
 
         if 'data_phone' not in st.session_state:
             st.session_state.data_phone = process_data(load_data('FullPhones'))
 
         if 'data_stationary' not in st.session_state:
-            st.session_state.data_stationary = process_data(load_data('StationaryTechs'))
+            st.session_state.data_stationary = process_data(load_data('StationaryTech'))
 
         # Use session state data for rendering in the app
         data_server = st.session_state.data_server
@@ -230,8 +230,9 @@ if st.session_state['authenticated']:
     # First convert cities to counties (it is an injective map) and then add all other counties with default value 0
     @st.cache_data(show_spinner=False)
     def prepare_data(data, data_column, default_value=0):
+        location_column = 'Location' if 'Location' in data.columns else 'Warehouse' # named different in different sheets
         # hypothetically, if multiple locations mapped to the same county, we would need to sum them which is what the next two lines do. currently for Harvest Hope, this is an impossible scenario, but it is handled.
-        data['County'] = data['Location'].apply(get_county) # add new column
+        data['County'] = data[location_column].apply(get_county) # add new column
         data = data.groupby('County')[data_column].sum().reset_index() # override old data with nx2 data: each county name and summed data_column
         merged_data = pd.merge(all_counties_df, data[['County', data_column]], on='County', how='left') # Taking every row from all_counties and adding data_column from 'data' to it if 'data' has that county. 'data' technically only has 2 columns but we specify just to be safe.
         merged_data[data_column].fillna(default_value, inplace=True)
@@ -270,6 +271,18 @@ if st.session_state['authenticated']:
             fig_heatmap = px.choropleth(heatmap_data_prices, geojson=geojson, locations='County', featureidkey="properties.name",
                                         color='Estimated Price', color_continuous_scale=scheme, title="Phone Valuation by Warehouse")
 
+
+        fig_heatmap.update_geos(fitbounds="locations", visible=True)
+        fig_heatmap.update_traces(marker_line_width=0.5, marker_line_color='black')
+        st.plotly_chart(fig_heatmap)
+
+    if not data_stationary.empty:
+        
+        heatmap_data_prices = data_stationary.groupby('Warehouse')['Estimated Price'].sum().reset_index()
+        heatmap_data_prices = prepare_data(heatmap_data_prices, 'Estimated Price')
+
+        fig_heatmap = px.choropleth(heatmap_data_prices, geojson=geojson, locations='County', featureidkey="properties.name",
+                                    color='Estimated Price', color_continuous_scale=scheme, title="Workstation Valuation by Warehouse")
 
         fig_heatmap.update_geos(fitbounds="locations", visible=True)
         fig_heatmap.update_traces(marker_line_width=0.5, marker_line_color='black')

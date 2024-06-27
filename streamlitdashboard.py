@@ -359,7 +359,13 @@ if st.session_state['authenticated']:
         else:
             filtered_data = data_stationary
 
-        st.write(f"Workstation Device Data for {selected_filter_category} - {selected_value if selected_value != 'All' else 'All'}:")
+        if selected_filter_category != 'All' and selected_value != 'All':
+            display_text = f"{selected_filter_category} - {selected_value}"
+        else:
+            display_text = "All"
+            
+        st.write(f"Workstation Device Data for {display_text}:")
+
         st.dataframe(filtered_data)
 
         csv = filtered_data.to_csv(index=False).encode('utf-8')

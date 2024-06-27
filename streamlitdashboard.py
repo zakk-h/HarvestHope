@@ -65,7 +65,7 @@ if st.session_state['authenticated']:
                 data = data.drop(columns=['RowID'])
             if 'Total Charges' in data.columns:
                 data['Total Charges'] = pd.to_numeric(data['Total Charges'].replace('[\$,]', '', regex=True), errors='coerce')
-                data['Annual Charges'] = data['Total Charges'] * 12
+                data['Annual Phone Bill'] = data['Total Charges'] * 12
             if 'Estimated Price' in data.columns:
                 data['Estimated Price'] = pd.to_numeric(data['Estimated Price'].replace('[\$,]', '', regex=True), errors='coerce')
                 if 'Quantity' in data.columns:
@@ -93,7 +93,7 @@ if st.session_state['authenticated']:
 
         # Calculate summaries
         storage_value = data_server['Total Value'].sum()
-        total_annual_subscription = data_phone['Annual Charges'].sum()
+        total_annual_phone_bill = data_phone['Annual Phone Bill'].sum()
         phones_value = data_phone['Estimated Price'].sum()
         stationary_value = data_stationary['Estimated Price'].sum()
 
@@ -102,10 +102,10 @@ if st.session_state['authenticated']:
         # Summary Cards
         col1, col2, col3 = st.columns(3)
         col1.metric("Total Phone Value", f"${phones_value:,.2f}", delta_color="off")
-        col2.metric("Total Stationary Tech Value", f"${stationary_value:,.2f}", delta_color="off")
+        col2.metric("Total Workstation Device Value", f"${stationary_value:,.2f}", delta_color="off")
         col3.metric("Total Storage Value", f"${storage_value:,.2f}", delta_color="off")
         col4, col5, col6, = st.columns(3)
-        col5.metric("Total Annual Subscriptions", f"${total_annual_subscription:,.2f}", delta_color="off")
+        col5.metric("Total Annual Phone Bills", f"${total_annual_phone_bill:,.2f}", delta_color="off")
 
         if st.session_state['clearance_level'] == 'high': loading_message.empty() # If high level, they no longer need to see what authentication they signed in as -  they have everything.
     # (we loaded enough to end the spinner here)
@@ -117,22 +117,22 @@ if st.session_state['authenticated']:
     if chart_style == 'Bar Chart':
         fig_server_value = px.bar(data_server.groupby('Combined_Section')['Total Value'].sum().reset_index(),
                                   x='Combined_Section', y='Total Value', title="Storage Value by Category",
-                                  labels={'Total Value': 'Total Value ($)', 'Combined_Section': 'Category'},
+                                  labels={'Combined_Section': 'Category'},
                                   color='Combined_Section')
         st.plotly_chart(fig_server_value)
     elif chart_style == 'Pie Chart':
         fig_inventory_pie = px.pie(data_server, values='Total Value', names='Combined_Section',
-                                   title="Storage Distribution by Category")
+                                   title="Storage Value by Category")
         st.plotly_chart(fig_inventory_pie)
 
 
-    fig_subscription_pie = px.pie(data_phone, values='Annual Charges', names='Location',
+    fig_subscription_pie = px.pie(data_phone, values='Annual Phone Bill', names='Location',
                                   title="Subscription Cost by Location",
                                   color_discrete_sequence=px.colors.sequential.YlOrRd)
     
     data_phone['Administration'] = data_phone['Administration'].map({'Y': 'Yes', 'N': 'No'})
-    fig_admin_charges = px.pie(data_phone.groupby('Administration')['Annual Charges'].sum().reset_index(),
-                               values='Annual Charges', names='Administration',
+    fig_admin_charges = px.pie(data_phone.groupby('Administration')['Annual Phone Bill'].sum().reset_index(),
+                               values='Annual Phone Bill', names='Administration',
                                title="Subscription Cost by Administration",
                                color_discrete_sequence=px.colors.sequential.Sunsetdark)
 
@@ -141,6 +141,54 @@ if st.session_state['authenticated']:
         st.plotly_chart(fig_subscription_pie)
     with col2:
         st.plotly_chart(fig_admin_charges)
+
+    chart_type = st.radio(
+        "Select Chart Style for Total Value by Device Type:",
+        ('Bar Chart', 'Pie Chart')
+    )
+
+    # Generate chart based on selection
+    if chart_type == 'Bar Chart':
+        fig_device = px.bar(
+            data_stationary.groupby('Device')['Estimated Price'].sum().reset_index(),
+            x='Device', 
+            y='Estimated Price', 
+            title="Total Value by Device Type",
+            labels={'Estimated Price': 'Total Price', 'Device': 'Device Type'},
+            color='Device'
+        )
+    elif chart_type == 'Pie Chart':
+        fig_device = px.pie(
+            data_stationary, 
+            values='Estimated Price', 
+            names='Device', 
+            title="Total Value by Device Type",
+            labels={'Estimated Price': 'Total Value'}
+        )
+    st.plotly_chart(fig_device)
+
+    # Columns for pie charts
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig_warehouse = px.pie(
+            data_stationary.groupby('Warehouse')['Estimated Price'].sum().reset_index(),
+            values='Estimated Price', 
+            names='Warehouse', 
+            title="Workstation Device Value by Warehouse",
+            labels={'Estimated Price': 'Total Value'}
+        )
+        st.plotly_chart(fig_warehouse)
+
+    with col2:
+        fig_department = px.pie(
+            data_stationary.groupby('Department')['Estimated Price'].sum().reset_index(),
+            values='Estimated Price', 
+            names='Department', 
+            title="Workstation Device Value by Department",
+            labels={'Estimated Price': 'Total Value'}
+        )
+        st.plotly_chart(fig_department)
 
     # Load GeoJSON data for South Carolina counties
     @st.cache_data(show_spinner=False)
@@ -174,37 +222,37 @@ if st.session_state['authenticated']:
         merged_data[data_column].fillna(default_value, inplace=True)
         return merged_data
     
-    heatmap_data_counts = data_phone.groupby('Location').size().reset_index(name='Phone Counts')
+    heatmap_data_counts = data_phone.groupby('Location').size().reset_index(name='Number of Phones')
     # heatmaps_data_counts example (indices aren't actually present)
-    #        Location  Phone Counts
+    #        Location  Number of Phones
     #    0  Charleston            1
     #    1    Columbia            3
     #    2  Greenville            3
     
     # The locations are mapped to counties (Columbia -> Richland)
-    # and counties not originally in the data_phone will have 'Phone Counts' set to the default value of 0.
-    heatmap_data_counts = prepare_data(heatmap_data_counts, 'Phone Counts') # data is passed by reference
+    # and counties not originally in the data_phone will have 'Number of Phones' set to the default value of 0.
+    heatmap_data_counts = prepare_data(heatmap_data_counts, 'Number of Phones') # data is passed by reference
 
-    heatmap_data_charges = data_phone.groupby('Location')['Annual Charges'].sum().reset_index()
-    heatmap_data_charges = prepare_data(heatmap_data_charges, 'Annual Charges')
+    heatmap_data_charges = data_phone.groupby('Location')['Annual Phone Bill'].sum().reset_index()
+    heatmap_data_charges = prepare_data(heatmap_data_charges, 'Annual Phone Bill')
 
     heatmap_data_prices = data_phone.groupby('Location')['Estimated Price'].sum().reset_index()
     heatmap_data_prices = prepare_data(heatmap_data_prices, 'Estimated Price')
 
     # Radio buttons for heatmap selection
-    heatmap_option = st.radio("Select Heatmap to Display", ('Phone Counts', 'Annual Phone Charges', 'Estimated Price of Phones'))
+    heatmap_option = st.radio("Select Heatmap to Display", ('Number of Phones', 'Annual Phone Bill', 'Phone Valuation'))
 
     # Good color scales: YlOrRd, YlGnBu, Cividis, Portland
     scheme = "YlGnBu"
-    if heatmap_option == 'Phone Counts':
+    if heatmap_option == 'Number of Phones':
         fig_heatmap = px.choropleth(heatmap_data_counts, geojson=geojson, locations='County', featureidkey="properties.name",
-                                    color='Phone Counts', color_continuous_scale=scheme, title="Phone Counts by County in South Carolina")
-    elif heatmap_option == 'Annual Phone Charges':
+                                    color='Number of Phones', color_continuous_scale=scheme, title="Number of Phones by Warehouse")
+    elif heatmap_option == 'Annual Phone Bill':
         fig_heatmap = px.choropleth(heatmap_data_charges, geojson=geojson, locations='County', featureidkey="properties.name",
-                                    color='Annual Charges', color_continuous_scale=scheme, title="Annual Phone Charges by County in South Carolina")
+                                    color='Annual Phone Bill', color_continuous_scale=scheme, title="Annual Phone Bill by Warehouse")
     else:
         fig_heatmap = px.choropleth(heatmap_data_prices, geojson=geojson, locations='County', featureidkey="properties.name",
-                                    color='Estimated Price', color_continuous_scale=scheme, title="Estimated Price of Phones by County in South Carolina")
+                                    color='Estimated Price', color_continuous_scale=scheme, title="Phone Valuation by Warehouse")
 
 
     fig_heatmap.update_geos(fitbounds="locations", visible=True)
@@ -262,6 +310,33 @@ if st.session_state['authenticated']:
                     data=server_csv,
                     file_name=f'server_data_{selected_section.replace(" ", "_")}.csv',
                     mime='text/csv')
+    
+    # Workstation Data - complex two-tier filtering system because there are multiple columns of interest you might want to filter by, and each obviously have categories
+    filter_categories = ['Department', 'Device', 'Warehouse']
+
+    selected_filter_category = st.selectbox("Select a filter category:", ['All'] + filter_categories)
+
+    if selected_filter_category != 'All':
+        unique_values = sorted(data_stationary[selected_filter_category].unique()) # alphabetically displayed
+        selected_value = st.selectbox(f"Select {selected_filter_category}:", ['All'] + unique_values) # only prompt for tier 2 if they have selected a filter in tier 1
+    else:
+        selected_value = 'All'
+
+    if selected_value != 'All':
+        filtered_data = data_stationary[data_stationary[selected_filter_category] == selected_value]
+    else:
+        filtered_data = data_stationary
+
+    st.write(f"Workstation Device Data for {selected_filter_category} - {selected_value if selected_value != 'All' else 'All'}:")
+    st.dataframe(filtered_data)
+
+    csv = filtered_data.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Download Displayed Workstation Data as CSV",
+        data=csv,
+        file_name=f"{selected_filter_category.lower()}_{selected_value.replace(' ', '_').lower()}_data.csv",
+        mime='text/csv'
+    )
 
 elif password != "":
         st.error("The password you entered is incorrect. Please try again.")

@@ -7,6 +7,7 @@ import numpy as np
 from st_aggrid import AgGrid, GridOptionsBuilder
 import hashlib
 import json
+import random
 
 # Password Hash
 low_level_hash = st.secrets["clearance"]["low_level"]
@@ -44,10 +45,10 @@ if st.session_state['clearance_level'] != 'high':
             if is_high_level: st.rerun() # run script from beginning (will recognize authenication from session_state and avoid password prompt)
 
 if st.session_state['authenticated']:
+    auth_message = st.empty()
+    auth_message.success(f"Authentication with {st.session_state['clearance_level']} clearance successful.")
     # Loading screen
     with st.spinner('Loading dashboard...'):
-        loading_message = st.empty()
-        loading_message.success(f"Authentication with {st.session_state['clearance_level']} clearance successful.")
 
         st.title("Harvest Hope Tech Dashboard")
 
@@ -122,34 +123,49 @@ if st.session_state['authenticated']:
             stationary_value = data_stationary['Estimated Price'].sum()
             col2.metric("Total Workstation Device Value", f"${stationary_value:,.2f}", delta_color="off")
 
-        if st.session_state['clearance_level'] == 'high': loading_message.empty() # If high level, they no longer need to see what authentication they signed in as -  they have everything.
+        if st.session_state['clearance_level'] == 'high': auth_message.empty() # If high level, they no longer need to see what authentication they signed in as -  they have everything.
     # (we loaded enough to end the spinner here)
 
     if not data_server.empty:
         chart_style = st.radio("Select Chart Style for Storage Value by Category:",
                             ('Bar Chart', 'Pie Chart'))
-
+    
         if chart_style == 'Bar Chart':
             fig_server_value = px.bar(data_server.groupby('Combined_Section')['Total Value'].sum().reset_index(),
                                     x='Combined_Section', y='Total Value', title="Storage Value by Category",
                                     labels={'Combined_Section': 'Category'},
-                                    color='Combined_Section')
+                                    color='Combined_Section',
+                                    color_discrete_sequence=px.colors.sequential.Sunsetdark)
             st.plotly_chart(fig_server_value)
         elif chart_style == 'Pie Chart':
             fig_inventory_pie = px.pie(data_server, values='Total Value', names='Combined_Section',
-                                    title="Storage Value by Category")
+                                    title="Storage Value by Category",
+                                    color_discrete_sequence=px.colors.sequential.Sunsetdark)
             st.plotly_chart(fig_inventory_pie)
 
     if not data_phone.empty:
+        location_colors = [
+            "#c7e9c0",  # light green
+            "#41ab5d",  # medium green
+            "#006d2c",  # dark green
+            "#00441b"   # darker green
+        ]
+        random.shuffle(location_colors)
+        admin_colors = [
+            "#9ecae1",  # light blue
+            "#08519c"   # dark blue
+        ]
+        random.shuffle(admin_colors)
+
         fig_subscription_pie = px.pie(data_phone, values='Annual Phone Bill', names='Location',
                                     title="Subscription Cost by Location",
-                                    color_discrete_sequence=px.colors.sequential.YlOrRd)
+                                    color_discrete_sequence=location_colors)
         
         data_phone['Administration'] = data_phone['Administration'].map({'Y': 'Yes', 'N': 'No'})
         fig_admin_charges = px.pie(data_phone.groupby('Administration')['Annual Phone Bill'].sum().reset_index(),
                                 values='Annual Phone Bill', names='Administration',
                                 title="Subscription Cost by Administration",
-                                color_discrete_sequence=px.colors.sequential.Sunsetdark)
+                                color_discrete_sequence=admin_colors)
 
         col1, col2 = st.columns(2)
         with col1:
@@ -162,7 +178,24 @@ if st.session_state['authenticated']:
             "Select Chart Style for Total Value by Device Type:",
             ('Bar Chart', 'Pie Chart')
         )
-
+        brown_yellow_palette = [
+            "#FFF59D",  # soft yellow
+            "#FFF176",  # soft yellow
+            "#FFFDE7",  # lightest yellow
+            "#FFF9C4",  # lighter yellow
+            "#FDD835",  # mustard yellow
+            "#FBC02D",  # dark yellow
+            "#F9A825",  # yellowish brown
+            "#F57F17",  # amber
+            "#BCAAA4",  # light brown
+            "#A1887F",  # medium light brown
+            "#8D6E63",  # medium brown
+            "#795548",  # medium dark brown
+            "#6D4C41",   # dark brown
+            "#FFEE58",  # sunny yellow
+            "#FFEB3B"  # bright yellow
+        ]
+        random.shuffle(brown_yellow_palette)
         if chart_type == 'Bar Chart':
             fig_device = px.bar(
                 data_stationary.groupby('Device')['Estimated Price'].sum().reset_index(),
@@ -170,7 +203,8 @@ if st.session_state['authenticated']:
                 y='Estimated Price', 
                 title="Total Value by Device Type",
                 labels={'Estimated Price': 'Total Price', 'Device': 'Device Type'},
-                color='Device'
+                color='Device',
+                color_discrete_sequence=brown_yellow_palette
             )
         elif chart_type == 'Pie Chart':
             fig_device = px.pie(
@@ -178,7 +212,8 @@ if st.session_state['authenticated']:
                 values='Estimated Price', 
                 names='Device', 
                 title="Total Value by Device Type",
-                labels={'Estimated Price': 'Total Value'}
+                labels={'Estimated Price': 'Total Value'},
+                color_discrete_sequence=brown_yellow_palette
             )
         st.plotly_chart(fig_device)
 
@@ -191,7 +226,8 @@ if st.session_state['authenticated']:
                 values='Estimated Price', 
                 names='Warehouse', 
                 title="Workstation Device Value by Warehouse",
-                labels={'Estimated Price': 'Total Value'}
+                labels={'Estimated Price': 'Total Value'},
+                color_discrete_sequence=px.colors.sequential.Darkmint
             )
             st.plotly_chart(fig_warehouse)
 
@@ -201,7 +237,8 @@ if st.session_state['authenticated']:
                 values='Estimated Price', 
                 names='Department', 
                 title="Workstation Device Value by Department",
-                labels={'Estimated Price': 'Total Value'}
+                labels={'Estimated Price': 'Total Value'},
+                color_discrete_sequence=px.colors.sequential.Emrld
             )
             st.plotly_chart(fig_department)
 
@@ -363,7 +400,7 @@ if st.session_state['authenticated']:
             display_text = f"{selected_filter_category} - {selected_value}"
         else:
             display_text = "All"
-            
+
         st.write(f"Workstation Device Data for {display_text}:")
 
         st.dataframe(filtered_data)

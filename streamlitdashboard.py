@@ -60,6 +60,7 @@ if st.session_state['authenticated']:
         # Processing Data
         @st.cache_data(show_spinner=False)
         def process_data(data):
+            # Handles all sheets at once
             if 'RowID' in data.columns: # Only used by Shiny app
                 data = data.drop(columns=['RowID'])
             if 'Total Charges' in data.columns:
@@ -73,66 +74,73 @@ if st.session_state['authenticated']:
 
         # Load and process data on first time
         if 'data_server' not in st.session_state:
-            st.session_state.data_server = process_data(load_data('testcompat'))
+            st.session_state.data_server = process_data(load_data('TechInventory'))
 
         if 'data_phone' not in st.session_state:
-            st.session_state.data_phone = process_data(load_data('PhoneSandbox'))
+            st.session_state.data_phone = process_data(load_data('FullPhones'))
+
+        if 'data_stationary' not in st.session_state:
+            st.session_state.data_stationary = process_data(load_data('StationaryTech'))
 
         # Use session state data for rendering in the app
         data_server = st.session_state.data_server
         data_phone = st.session_state.data_phone.copy() # avoid modifying properties like usernames in the original. without .copy, they would refer to the same object.
+        data_stationary = st.session_state.data_stationary
 
         # Anonymize names in data if user lacks sufficient clearance
-        if st.session_state['clearance_level'] != 'high':
+        if st.session_state['clearance_level'] != 'high': # this will run every time - could be better optimized to store both censored and uncensored in session_state and choose which one.
             data_phone['Username'] = ['User ' + str(i) for i in range(len(data_phone))]
 
         # Calculate summaries
         storage_value = data_server['Total Value'].sum()
         total_annual_subscription = data_phone['Annual Charges'].sum()
         phones_value = data_phone['Estimated Price'].sum()
+        stationary_value = data_stationary['Estimated Price'].sum()
 
         st.title("Harvest Hope Tech Dashboard")
 
         # Summary Cards
-        st.subheader("Summary")
         col1, col2, col3 = st.columns(3)
-        col1.metric("Total Annual Subscriptions", f"${total_annual_subscription:,.2f}")
-        col2.metric("Total Phones Value", f"${phones_value:,.2f}")
-        col3.metric("Total Storage Value", f"${storage_value:,.2f}")
+        col1.metric("Total Phone Value", f"${phones_value:,.2f}", delta_color="off")
+        col2.metric("Total Stationary Tech Value", f"${stationary_value:,.2f}", delta_color="off")
+        col3.metric("Total Storage Value", f"${storage_value:,.2f}", delta_color="off")
+        col4, col5, col6, = st.columns(3)
+        col5.metric("Total Annual Subscriptions", f"${total_annual_subscription:,.2f}", delta_color="off")
 
         if st.session_state['clearance_level'] == 'high': loading_message.empty() # If high level, they no longer need to see what authentication they signed in as -  they have everything.
+    # (we loaded enough to end the spinner here)
 
-    # Bar Chart: Inventory Value by Category
-    fig_server_value = px.bar(data_server.groupby('Combined_Section')['Total Value'].sum().reset_index(),
-                            x='Combined_Section', y='Total Value', title="Storage Value by Category",
-                            labels={'Total Value': 'Total Value ($)', 'Section': 'Category'},
-                            color='Combined_Section')
-    st.plotly_chart(fig_server_value)
+    chart_style = st.radio("Select Chart Style for Storage Value by Category:",
+                           ('Bar Chart', 'Pie Chart'))
 
-    # Bar Chart: Annual Phone Charges by Location
-    fig_phone_charges = px.bar(data_phone.groupby('Location')['Annual Charges'].sum().reset_index(),
-                            x='Location', y='Annual Charges', title="Annual Phone Charges by Location",
-                            labels={'Annual Charges': 'Total Annual Charges ($)', 'Location': 'Location'},
-                            color='Location')
-    st.plotly_chart(fig_phone_charges)
+    # Conditional rendering based on selected chart style
+    if chart_style == 'Bar Chart':
+        fig_server_value = px.bar(data_server.groupby('Combined_Section')['Total Value'].sum().reset_index(),
+                                  x='Combined_Section', y='Total Value', title="Storage Value by Category",
+                                  labels={'Total Value': 'Total Value ($)', 'Combined_Section': 'Category'},
+                                  color='Combined_Section')
+        st.plotly_chart(fig_server_value)
+    elif chart_style == 'Pie Chart':
+        fig_inventory_pie = px.pie(data_server, values='Total Value', names='Combined_Section',
+                                   title="Storage Distribution by Category")
+        st.plotly_chart(fig_inventory_pie)
 
-    # Pie Charts
-    st.subheader("Inventory and Subscription Distribution")
-
-    fig_inventory_pie = px.pie(data_server, values='Total Value', names='Combined_Section',
-                            title="Storage Distribution by Category")
-    st.plotly_chart(fig_inventory_pie)
 
     fig_subscription_pie = px.pie(data_phone, values='Annual Charges', names='Location',
-                                title="Subscription Cost Distribution by Location")
-    st.plotly_chart(fig_subscription_pie)
-
+                                  title="Subscription Cost by Location",
+                                  color_discrete_sequence=px.colors.sequential.YlOrRd)
+    
     data_phone['Administration'] = data_phone['Administration'].map({'Y': 'Yes', 'N': 'No'})
-    fig_admin_charges = px.bar(data_phone.groupby('Administration')['Annual Charges'].sum().reset_index(),
-                            x='Administration', y='Annual Charges', title="Annual Phone Charges: Administration vs Non-Administration",
-                            labels={'Annual Charges': 'Total Annual Charges ($)', 'Administration': 'Administration'},
-                            color='Administration')
-    st.plotly_chart(fig_admin_charges)
+    fig_admin_charges = px.pie(data_phone.groupby('Administration')['Annual Charges'].sum().reset_index(),
+                               values='Annual Charges', names='Administration',
+                               title="Subscription Cost by Administration",
+                               color_discrete_sequence=px.colors.sequential.Sunsetdark)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(fig_subscription_pie)
+    with col2:
+        st.plotly_chart(fig_admin_charges)
 
     # Load GeoJSON data for South Carolina counties
     @st.cache_data(show_spinner=False)
@@ -206,34 +214,54 @@ if st.session_state['authenticated']:
     # Interactive Data Tables with Download Buttons
     st.subheader("Explore Data")
 
-    st.write("Phone Data")
-    grid_options = GridOptionsBuilder.from_dataframe(data_phone).build()
-    AgGrid(data_phone, gridOptions=grid_options)
+    # Phone Data
+    location_options = ['All'] + list(data_phone['Location'].unique())
+    selected_location = st.selectbox("Select Location:", options=location_options)
 
-    phone_csv = data_phone.to_csv(index=False).encode('utf-8')
-    st.download_button(label="Download Phone Data as CSV", data=phone_csv, file_name='phone_data.csv', mime='text/csv')
+    # Filter data based on selected location
+    if selected_location != 'All':
+        filtered_data_phone = data_phone[data_phone['Location'] == selected_location]
+    else:
+        filtered_data_phone = data_phone
 
-    st.write("Server Equipment Data")
-    # Combined Section isn't worth displaying in the data table - drop it after it has been used in visualization
-    data_server_display = data_server.copy() # New object
-    if 'Combined_Section' in data_server_display.columns:
-        data_server_display = data_server_display.drop(columns=['Combined_Section'])    
-    grid_options = GridOptionsBuilder.from_dataframe(data_server_display).build()
-    AgGrid(data_server_display, gridOptions=grid_options)
-
-    server_csv = data_server.to_csv(index=False).encode('utf-8') # They can download with combined section here because they might as well have everything - it just hurts the user interface to include it in the app table
-    st.download_button(label="Download Server Data as CSV", data=server_csv, file_name='server_data.csv', mime='text/csv')
-
-    # Filtering Options
-    st.subheader("Filter Data")
-    selected_location = st.selectbox("Select Location", options=data_phone['Location'].unique())
-    filtered_data_phone = data_phone[data_phone['Location'] == selected_location]
-
-    st.write(f"Filtered Data for Location: {selected_location}")
+    # Display the data table
+    st.write(f"Phone Data for {selected_location}:")
     grid_options = GridOptionsBuilder.from_dataframe(filtered_data_phone).build()
     AgGrid(filtered_data_phone, gridOptions=grid_options)
 
-    filtered_phone_csv = filtered_data_phone.to_csv(index=False).encode('utf-8')
-    st.download_button(label=f"Download Filtered Phone Data for {selected_location} as CSV", data=filtered_phone_csv, file_name=f'filtered_phone_data_{selected_location}.csv', mime='text/csv')
+    # Download button for the displayed data
+    phone_csv = filtered_data_phone.to_csv(index=False).encode('utf-8')
+    st.download_button(label="Download Displayed Phone Data as CSV",
+                    data=phone_csv,
+                    file_name=f'phone_data_{selected_location.replace(" ", "_")}.csv',
+                    mime='text/csv')
+
+    # Server Data
+    section_options = ['All'] + list(data_server['Section'].unique())
+    selected_section = st.selectbox("Select Section:", options=section_options)
+
+    # Filter data based on selected section
+    if selected_section != 'All':
+        filtered_data_server = data_server[data_server['Section'] == selected_section]
+    else:
+        filtered_data_server = data_server
+
+    # Prepare data for display (dropping 'Combined_Section' if it exists)
+    data_server_display = filtered_data_server.copy()  # Work with the filtered data
+    if 'Combined_Section' in data_server_display.columns:
+        data_server_display = data_server_display.drop(columns=['Combined_Section'])
+
+    # Display the data table
+    st.write(f"Server Equipment Data for: {selected_section}")
+    grid_options = GridOptionsBuilder.from_dataframe(data_server_display).build()
+    AgGrid(data_server_display, gridOptions=grid_options)
+
+    # Download button for the displayed data
+    server_csv = filtered_data_server.to_csv(index=False).encode('utf-8') # We might as well let them download with Combined_Section but it wasn't worth displaying
+    st.download_button(label="Download Displayed Server Data as CSV", 
+                    data=server_csv,
+                    file_name=f'server_data_{selected_section.replace(" ", "_")}.csv',
+                    mime='text/csv')
+
 elif password != "":
         st.error("The password you entered is incorrect. Please try again.")

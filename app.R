@@ -13,7 +13,7 @@ gs4_auth(path = "confidential/hhinventory_service_account_credentials.json")
 
 # Google Sheet settings
 sheet_id <- "1hFROHxAvUrZKADr1H7fY2RGWH4I0LeXKCoqux7tObqw"
-sheet_name <- "testcompat"
+sheet_name <- "TechInventory"
 
 # Password hashes to check against for authentication
 hashes <- fromJSON("confidential/shinypasswords.json")
